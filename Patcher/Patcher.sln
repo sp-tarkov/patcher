@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatchGenerator", "Patcher\PatchGenerator.csproj", "{DDB70566-994E-4884-8555-C005B238039B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatchGenerator", "PatchGenerator\PatchGenerator.csproj", "{DDB70566-994E-4884-8555-C005B238039B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatcherUtils", "PatcherUtils\PatcherUtils.csproj", "{A9819B34-8111-4344-B2B3-3DE5D7A43A45}"
 EndProject

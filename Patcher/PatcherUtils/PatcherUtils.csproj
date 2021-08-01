@@ -6,13 +6,13 @@
 
   <ItemGroup>
     <Reference Include="Aki.ByteBanger">
-      <HintPath>..\Patcher\References\Aki.ByteBanger.dll</HintPath>
+      <HintPath>..\PatchGenerator\References\Aki.ByteBanger.dll</HintPath>
     </Reference>
     <Reference Include="Aki.Common">
-      <HintPath>..\Patcher\References\Aki.Common.dll</HintPath>
+      <HintPath>..\PatchGenerator\References\Aki.Common.dll</HintPath>
     </Reference>
     <Reference Include="ComponentAce.Compression.Libs.zlib">
-      <HintPath>..\Patcher\References\ComponentAce.Compression.Libs.zlib.dll</HintPath>
+      <HintPath>..\PatchGenerator\References\ComponentAce.Compression.Libs.zlib.dll</HintPath>
     </Reference>
   </ItemGroup>
 

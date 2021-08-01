@@ -91,7 +91,6 @@ namespace PatcherUtils
         /// <summary>
         /// Deletes the <see cref="TempDir"/> recursively
         /// </summary>
-        /// <Returns>Returns true if the temp directory was deleted.</Returns>
         public static void CleanupTempDir()
         {
             DirectoryInfo dir = new DirectoryInfo(TempDir);

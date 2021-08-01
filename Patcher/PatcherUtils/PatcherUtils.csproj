@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Aki.ByteBanger">
+      <HintPath>..\Patcher\References\Aki.ByteBanger.dll</HintPath>
+    </Reference>
+    <Reference Include="Aki.Common">
+      <HintPath>..\Patcher\References\Aki.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ComponentAce.Compression.Libs.zlib">
+      <HintPath>..\Patcher\References\ComponentAce.Compression.Libs.zlib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 namespace PatcherUtils
@@ -11,12 +13,18 @@ namespace PatcherUtils
         public static string TempDir = "PATCHER_TEMP".FromCwd();
 
         private static string SevenZExe = "7za.exe";
+
+        /// <summary>
+        /// The folder that the patches will be stored in
+        /// </summary>
+        public static string PatchFolder = "Aki_Data\\Patcher";
+
         /// <summary>
         /// The path to the 7za.exe file in the <see cref="TempDir"/>
         /// </summary>
         public static string SevenZExePath = $"{TempDir}\\{SevenZExe}";
 
-        private static string PatcherClient = "patcher.exe";
+        private static string PatcherClient = "PatchClient.exe";
         /// <summary>
         /// The path to the patcher.exe file in the <see cref="TempDir"/>
         /// </summary>
@@ -69,11 +77,22 @@ namespace PatcherUtils
             }
         }
 
+        public static void StartZipProcess(string SourcePath, string DestinationPath)
+        {
+            ProcessStartInfo procInfo = new ProcessStartInfo()
+            {
+                FileName = SevenZExePath,
+                Arguments = $"a {DestinationPath} {SourcePath}"
+            };
+
+            Process.Start(procInfo);
+        }
+
         /// <summary>
         /// Deletes the <see cref="TempDir"/> recursively
         /// </summary>
         /// <Returns>Returns true if the temp directory was deleted.</Returns>
-        public static bool CleanupTempDir()
+        public static void CleanupTempDir()
         {
             DirectoryInfo dir = new DirectoryInfo(TempDir);
 
@@ -81,15 +100,6 @@ namespace PatcherUtils
             {
                 dir.Delete(true);
             }
-
-            dir.Refresh();
-
-            if(dir.Exists)
-            {
-                return false;
-            }
-
-            return true;
         }
     }
 }

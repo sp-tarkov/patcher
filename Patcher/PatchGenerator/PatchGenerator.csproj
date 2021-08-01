@@ -7,14 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\7za.exe" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\7za.exe" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PatcherUtils\PatcherUtils.csproj" />
   </ItemGroup>
 

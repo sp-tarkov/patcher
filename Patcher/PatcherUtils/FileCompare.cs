@@ -140,7 +140,7 @@ namespace PatcherUtils
                 AdditionalInfo[3].ItemValue = matchCount.ToString();
 
                 fileIt++;
-                RaiseProgressChanged(fileIt, fileCount, "", AdditionalInfo.ToArray());
+                RaiseProgressChanged(fileIt, fileCount, file.Name, AdditionalInfo.ToArray());
             }
 
             

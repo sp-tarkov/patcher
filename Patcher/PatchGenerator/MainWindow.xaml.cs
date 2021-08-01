@@ -1,9 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using PatcherUtils;
+using PatchGenerator.Extensions;
 
 namespace PatchGenerator
 {
@@ -14,7 +17,8 @@ namespace PatchGenerator
     {
         private string compareFolder = "";
         private string targetFolder = "";
-        private readonly string patchFolder = "Aki_Data/Patcher/".FromCwd();
+        private string outputFolderName = "";
+
         private Stopwatch stopwatch = new Stopwatch();
 
         public MainWindow()
@@ -74,26 +78,19 @@ namespace PatchGenerator
             }
         }
 
-        private void GeneratePatches()
+        private void GeneratePatches(string patchBase)
         {
             //create temp data
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                GenProgressBar.IsIndeterminate = true;
-                GenProgressMessageLabel.Content = "Extracting temp data ...";
-            });
+            GenProgressBar.DispatcherSetIndetermination(true);
+            GenProgressMessageLabel.DispaatcherSetContent("Extracting temp data ...");
 
+            LazyOperations.CleanupTempDir();
             LazyOperations.PrepTempDir();
 
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                GenProgressBar.IsIndeterminate = false;
-            });
-
+            GenProgressBar.DispatcherSetIndetermination(false);
 
             //generate patches
-            
-            FileCompare bc = new FileCompare(targetFolder, compareFolder, patchFolder);
+            FileCompare bc = new FileCompare(targetFolder, compareFolder, patchBase);
 
             bc.ProgressChanged += Bc_ProgressChanged;
 
@@ -102,50 +99,89 @@ namespace PatchGenerator
                 MessageBox.Show("Failed to generate diffs.", ":(", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            //TODO - Build patcher
+            //Copy patch client to output folder
+            File.Copy(LazyOperations.PatcherClientPath, $"{outputFolderName}\\patcher.exe", true);
 
-            //TODO - compress to file (should add a name textbox or something)
+            //compress patch output folder to 7z file
+            LazyOperations.StartZipProcess(outputFolderName, $"{outputFolderName}.7z".FromCwd());
 
-            //Cleanup temp data
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                GenProgressBar.Value = 100;
-                GenProgressMessageLabel.Content = $"Done";
-            });
-
-            if (!LazyOperations.CleanupTempDir()) 
-            {
-                MessageBox.Show($"Looks like some temp files could not be removed. You can safely delete this folder:\n\n{LazyOperations.TempDir}");
-            }
+            GenProgressBar.DispatcherSetValue(100);
+            GenProgressMessageLabel.DispaatcherSetContent("Done");
         }
 
         private void Bc_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
-
             string additionalInfo = "";
-            foreach(LineItem item in AdditionalLineItems)
+            foreach (LineItem item in AdditionalLineItems)
             {
                 additionalInfo += $"{item.ItemText}: {item.ItemValue}\n";
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
+
+            GenProgressBar.DispatcherSetValue(Percent);
+
+            if (!string.IsNullOrWhiteSpace(Message))
             {
-                GenProgressBar.Value = Percent;
+                GenProgressMessageLabel.DispaatcherSetContent(Message);
+            }
 
-                if (!string.IsNullOrWhiteSpace(Message))
-                {
-                    GenProgressMessageLabel.Content = Message;
-                }
+            GenProgressInfoLabel.DispaatcherSetContent($"[{Progress}/{Total}]");
 
-                GenProgressInfoLabel.Content = $"[{Progress}/{Total}]";
-
-                AdditionalInfoBlock.Text = additionalInfo;
-            });
+            AdditionalInfoBlock.DispatcherSetText(additionalInfo);
         }
 
         private void GenButton_Click(object sender, RoutedEventArgs e)
         {
             GenButton.IsEnabled = false;
+            CompareLabel.IsEnabled = false;
+            TargetLabel.IsEnabled = false;
+            FileNameBox.IsEnabled = false;
+
+            string InfoNeededMessage = "You must set the following: ";
+            bool infoNeeded = false;
+
+            if(string.IsNullOrWhiteSpace(FileNameBox.Text))
+            {
+                InfoNeededMessage += "\n[Output File Name]";
+                FileNameBox.BorderBrush = Brushes.Red;
+                infoNeeded = true;
+            }
+
+            if(string.IsNullOrWhiteSpace(compareFolder))
+            {
+                InfoNeededMessage += "\n[COMPARE Folder]";
+                CompareLabel.BorderBrush = Brushes.Red;
+                infoNeeded = true;
+            }
+
+            if(string.IsNullOrWhiteSpace(targetFolder))
+            {
+                InfoNeededMessage += "\n[TARGET Folder]";
+                TargetLabel.BorderBrush = Brushes.Red;
+                infoNeeded = true;
+            }
+
+            if (infoNeeded)
+            {
+                MessageBox.Show(InfoNeededMessage, "Info Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                GenButton.IsEnabled = true;
+                CompareLabel.IsEnabled = true;
+                TargetLabel.IsEnabled = true;
+                FileNameBox.IsEnabled = true;
+                return;
+            }
+
+            void SetEndingInfo(string info)
+            {
+                GenButton.DispatcherSetEnabled(true);
+                CompareLabel.DispatcherSetEnabled(true);
+                TargetLabel.DispatcherSetEnabled(true);
+                FileNameBox.DispatcherSetEnabled(true);
+
+                GenProgressMessageLabel.DispaatcherSetContent("");
+                GenProgressInfoLabel.DispaatcherSetContent(info);
+            }
+
 
             Task.Run(() =>
             {
@@ -154,20 +190,27 @@ namespace PatchGenerator
 
                 try
                 {
-                    GeneratePatches();
+                    GeneratePatches(Path.Combine(outputFolderName.FromCwd(), LazyOperations.PatchFolder));
+                    stopwatch.Stop();
+                    SetEndingInfo($"Patches Generated in: {GetStopWatchTime()}");
                 }
-                finally
+                catch(Exception ex)
                 {
                     stopwatch.Stop();
-
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        GenButton.IsEnabled = true;
-                        GenProgressMessageLabel.Content = "";
-                        GenProgressInfoLabel.Content = $"Patches Generated in: {GetStopWatchTime()}";
-                    });
+                    SetEndingInfo(ex.Message);
                 }
             });
+        }
+
+        private void FileNameBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            FileNameBox.BorderBrush = Brushes.Gainsboro;
+
+            if (outputFolderName == FileNameBox.Text) return;
+
+            outputFolderName = Regex.Replace(FileNameBox.Text, "[^A-Za-z0-9.\\-_]", "");
+
+            FileNameBox.Text = outputFolderName;
         }
     }
 }

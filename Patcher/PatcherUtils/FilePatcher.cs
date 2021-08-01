@@ -62,7 +62,7 @@ namespace PatcherUtils
 
             foreach (FileInfo file in di.GetFiles())
             {
-                FileInfo target;
+                FileInfo target = null;
 
                 switch (file.Extension)
                 {
@@ -106,7 +106,7 @@ namespace PatcherUtils
                 AdditionalInfo[2].ItemValue = delCount.ToString();
 
                 ++fileIt;
-                RaiseProgressChanged(fileIt, fileCount, "", AdditionalInfo.ToArray());
+                RaiseProgressChanged(fileIt, fileCount, target.Name, AdditionalInfo.ToArray());
             }
 
             foreach (DirectoryInfo directory in di.GetDirectories())

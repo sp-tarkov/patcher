@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatchGenerator", "PatchGene
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PatcherUtils", "PatcherUtils\PatcherUtils.csproj", "{A9819B34-8111-4344-B2B3-3DE5D7A43A45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchClient", "PatchClient\PatchClient.csproj", "{9CA4D2BD-6596-41D1-8354-135868DF8DAB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A9819B34-8111-4344-B2B3-3DE5D7A43A45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9819B34-8111-4344-B2B3-3DE5D7A43A45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9819B34-8111-4344-B2B3-3DE5D7A43A45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CA4D2BD-6596-41D1-8354-135868DF8DAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CA4D2BD-6596-41D1-8354-135868DF8DAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CA4D2BD-6596-41D1-8354-135868DF8DAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CA4D2BD-6596-41D1-8354-135868DF8DAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,8 +15,6 @@ namespace PatchClient
         public MainWindow()
         {
             InitializeComponent();
-
-            this.TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo() { ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal };
         }
 
         private void RunPatcher()

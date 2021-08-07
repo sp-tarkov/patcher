@@ -58,8 +58,6 @@ namespace PatcherUtils
         {
             DirectoryInfo di = new DirectoryInfo(patchpath);
 
-            //RaiseProgressChanged(0, fileCount, "Patching client...");
-
             foreach (FileInfo file in di.GetFiles())
             {
                 FileInfo target = null;

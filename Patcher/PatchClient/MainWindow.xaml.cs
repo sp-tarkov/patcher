@@ -3,6 +3,7 @@ using PatcherUtils;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace PatchClient
 {
@@ -14,6 +15,8 @@ namespace PatchClient
         public MainWindow()
         {
             InitializeComponent();
+
+            this.TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo() { ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal };
         }
 
         private void RunPatcher()
@@ -77,6 +80,19 @@ namespace PatchClient
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             RunPatcher();
+        }
+
+        private void Close_Button_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown(0);
+        }
+
+        private void label_topbar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
         }
     }
 }

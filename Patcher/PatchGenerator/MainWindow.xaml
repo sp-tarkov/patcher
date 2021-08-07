@@ -80,5 +80,15 @@
                 Content="Generate Patches"
                 Click="GenButton_Click"
                 />
+
+        <CheckBox x:Name="AutoZip_checkBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Bottom"
+                  Margin="10"
+                  ToolTip="This will compress the patch files after they are generated using 7z format."
+                  Content="Auto Zip After Patches are Generated"
+                  IsChecked="{Binding Path=AutoZip, 
+                              RelativeSource={
+                              RelativeSource AncestorType=Window,
+                              Mode=FindAncestor}}"
+                  />
     </Grid>
 </Window>

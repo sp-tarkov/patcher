@@ -7,18 +7,45 @@
         mc:Ignorable="d"
         Title="Patching Client" Height="200" Width="600"
         WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded">
+        Background="{StaticResource AKI_Background_Light}"
+        Loaded="Window_Loaded"
+        WindowStyle="SingleBorderWindow">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" CornerRadius="0" GlassFrameThickness="0 0 0 5" UseAeroCaptionButtons="False"
+                      ResizeBorderThickness="5"
+                      />
+    </WindowChrome.WindowChrome>
     <Grid>
-        <StackPanel VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="AUTO"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="AUTO"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        
+        
+        <Label Content="Patching Client"
+               FontSize="15" Background="{StaticResource AKI_Background_Dark}"
+               MouseDown="label_topbar_MouseDown"
+               />
+        
+        <Button x:Name="Close_Button" Grid.Column="1" Content="X" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                Style="{StaticResource AppCloseButtonStyle}"
+                Click="Close_Button_Click"
+                />
+
+        <StackPanel Grid.ColumnSpan="2" Grid.Row="1">
             <Label x:Name="PatchMessageLabel"
                    Margin="10"
                    />
 
-            <ContentControl Margin="10">
+            <ContentControl Margin="10 0 10 10">
                 <Grid>
                     <ProgressBar x:Name="PatchProgressBar"
                                  Height="20"
-                                 Foreground="MediumPurple"
                                  />
                     <Label x:Name="PatchProgressInfoLabel"
                            HorizontalAlignment="Center" VerticalAlignment="Center"

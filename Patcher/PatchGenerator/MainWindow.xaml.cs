@@ -18,6 +18,7 @@ namespace PatchGenerator
         private string compareFolder = "";
         private string targetFolder = "";
         private string outputFolderName = "";
+        public bool AutoZip { get; set; } = true;
 
         private Stopwatch stopwatch = new Stopwatch();
 
@@ -103,7 +104,10 @@ namespace PatchGenerator
             File.Copy(LazyOperations.PatcherClientPath, $"{outputFolderName}\\patcher.exe", true);
 
             //compress patch output folder to 7z file
-            LazyOperations.StartZipProcess(outputFolderName, $"{outputFolderName}.7z".FromCwd());
+            if (AutoZip)
+            {
+                LazyOperations.StartZipProcess(outputFolderName, $"{outputFolderName}.7z".FromCwd());
+            }
 
             GenProgressBar.DispatcherSetValue(100);
             GenProgressMessageLabel.DispaatcherSetContent("Done");
@@ -136,6 +140,7 @@ namespace PatchGenerator
             CompareLabel.IsEnabled = false;
             TargetLabel.IsEnabled = false;
             FileNameBox.IsEnabled = false;
+            AutoZip_checkBox.IsEnabled = false;
 
             string InfoNeededMessage = "You must set the following: ";
             bool infoNeeded = false;
@@ -168,6 +173,7 @@ namespace PatchGenerator
                 CompareLabel.IsEnabled = true;
                 TargetLabel.IsEnabled = true;
                 FileNameBox.IsEnabled = true;
+                AutoZip_checkBox.IsEnabled = true;
                 return;
             }
 
@@ -177,6 +183,7 @@ namespace PatchGenerator
                 CompareLabel.DispatcherSetEnabled(true);
                 TargetLabel.DispatcherSetEnabled(true);
                 FileNameBox.DispatcherSetEnabled(true);
+                AutoZip_checkBox.DispatcherSetEnabled(true);
 
                 GenProgressMessageLabel.DispaatcherSetContent("");
                 GenProgressInfoLabel.DispaatcherSetContent(info);

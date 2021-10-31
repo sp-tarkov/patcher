@@ -27,6 +27,35 @@ namespace PatchGenerator
             InitializeComponent();
         }
 
+        public MainWindow(GenStartupArgs startupArgs = null)
+        {
+            InitializeComponent();
+
+            if (startupArgs == null) return;
+
+            FileNameBox.Text = startupArgs.OutputFolderName;
+            if (startupArgs.CompareFolderPath != "")
+            {
+                compareFolder = startupArgs.CompareFolderPath;
+                CompareLabel.Content = $"Compare Folder:\n{compareFolder}";
+                CompareLabel.BorderBrush = Brushes.DarkCyan;
+            }
+
+            if (startupArgs.TargetFolderPath != "")
+            {
+                targetFolder = startupArgs.TargetFolderPath;
+                TargetLabel.Content = $"Target Folder:\n{targetFolder}";
+                TargetLabel.BorderBrush = Brushes.DarkCyan;
+            }
+
+            AutoZip = startupArgs.AutoZip;
+
+            if (startupArgs.ReadyToRun)
+            {
+                GenButton_Click(null, null);
+            }
+        }
+
         private string GetStopWatchTime()
         {
             return $"Hours: {stopwatch.Elapsed.Hours} - Mins: {stopwatch.Elapsed.Minutes} - Secs: {stopwatch.Elapsed.Seconds} - MilliSecs: {stopwatch.Elapsed.Milliseconds}";

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\7za.exe" />
+    <None Remove="Resources\PatchClient.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\7za.exe" />
+    <EmbeddedResource Include="Resources\PatchClient.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Aki.ByteBanger">
+      <HintPath>..\PatchGenerator\References\Aki.ByteBanger.dll</HintPath>
+    </Reference>
+    <Reference Include="Aki.Common">
+      <HintPath>..\PatchGenerator\References\Aki.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ComponentAce.Compression.Libs.zlib">
+      <HintPath>..\PatchGenerator\References\ComponentAce.Compression.Libs.zlib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

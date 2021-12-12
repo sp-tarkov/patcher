@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:model="using:PatchClient.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="PatchClient.Views.PatcherView">
+
+	<UserControl.Styles>
+		<StyleInclude Source="/Assets/Styles.axaml"/>
+		<Style Selector="Label">
+			<Setter Property="Margin" Value="0 0 0 5"/>
+		</Style>
+	</UserControl.Styles>
+
+	<Grid RowDefinitions="AUTO,AUTO,AUTO,AUTO,AUTO" Margin="10">
+
+		<!-- Current Patch Text -->
+		<Label Content="{Binding ProgressMessage}"/>
+		<Label Content="{Binding PatchMessage}" Grid.Row="1"
+			   Classes="blue"/>
+		<ProgressBar Grid.Row="2" Value="{Binding PatchProgress}"/>
+
+		<Separator Grid.Row="3"
+				   VerticalAlignment="Bottom"
+				   Background="Gainsboro"
+				   Height="1"
+				   Margin="0 20"/>
+
+		<ItemsControl Items="{Binding LineItems}" Grid.Row="4" HorizontalAlignment="Stretch">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate DataType="{x:Type model:LineItemProgress}">
+					<StackPanel Orientation="Horizontal">
+						<Label Content="{Binding Info}"/>
+						<ProgressBar Value="{Binding Progress}"/>
+					</StackPanel>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+	</Grid>
+</UserControl>

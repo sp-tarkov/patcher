@@ -4,11 +4,8 @@ using PatcherUtils;
 using Splat;
 using System;
 using ReactiveUI;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Avalonia.Controls.ApplicationLifetimes;
 using System.Collections.ObjectModel;
 
 namespace PatchClient.ViewModels
@@ -26,11 +23,11 @@ namespace PatchClient.ViewModels
             set => this.RaiseAndSetIfChanged(ref _ProgressMessage, value);
         }
 
-        private int _PatchProgress;
-        public int PatchProgress
+        private int _PatchPercent;
+        public int PatchPercent
         {
-            get => _PatchProgress;
-            set => this.RaiseAndSetIfChanged(ref _PatchProgress, value);
+            get => _PatchPercent;
+            set => this.RaiseAndSetIfChanged(ref _PatchPercent, value);
         }
 
         private string _PatchMessage;
@@ -44,7 +41,7 @@ namespace PatchClient.ViewModels
 
         public PatcherViewModel()
         {
-            Test();
+            RunPatcher();
         }
 
         [Obsolete]
@@ -63,7 +60,7 @@ namespace PatchClient.ViewModels
                 for (int i = 0; i <= 100; i++)
                 {
                     System.Threading.Thread.Sleep(20);
-                    PatchProgress = i;
+                    PatchPercent = i;
                     ProgressMessage = $"Patching @ {i}%";
 
                     foreach(var item in LineItems)
@@ -72,7 +69,7 @@ namespace PatchClient.ViewModels
                     }
                 }
 
-                navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
+                //navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
             });
         }
 
@@ -92,7 +89,7 @@ namespace PatchClient.ViewModels
                 {
                     if (bp.Run())
                     {
-                        navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
+                        //navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
                     }
                     else
                     {
@@ -110,8 +107,11 @@ namespace PatchClient.ViewModels
         {
             foreach (LineItem item in AdditionalLineItems)
             {
+                if (item.ItemValue <= 0) continue;
+
                 if(initLineItemProgress)
                 {
+
                     LineItems.Add(new LineItemProgress(item));
                 }
 
@@ -120,14 +120,14 @@ namespace PatchClient.ViewModels
 
             initLineItemProgress = false;
 
-            PatchProgress = Progress;
+            PatchPercent = Percent;
 
             if (!string.IsNullOrWhiteSpace(Message))
             {
                 PatchMessage = Message;
             }
 
-            ProgressMessage = $"Patching @ {Percent}%";
+            ProgressMessage = $"Patching: {Progress} / {Total} - {Percent}%";
         }
     }
 }

@@ -7,10 +7,13 @@
              x:Class="PatchClient.Views.PatcherView">
 
 	<UserControl.Styles>
+		
 		<StyleInclude Source="/Assets/Styles.axaml"/>
+		
 		<Style Selector="Label">
 			<Setter Property="Margin" Value="0 0 0 5"/>
 		</Style>
+		
 	</UserControl.Styles>
 
 	<Grid RowDefinitions="AUTO,AUTO,AUTO,AUTO,AUTO" Margin="10">
@@ -19,7 +22,7 @@
 		<Label Content="{Binding ProgressMessage}"/>
 		<Label Content="{Binding PatchMessage}" Grid.Row="1"
 			   Classes="blue"/>
-		<ProgressBar Grid.Row="2" Value="{Binding PatchProgress}"/>
+		<ProgressBar Grid.Row="2" Value="{Binding PatchPercent}"/>
 
 		<Separator Grid.Row="3"
 				   VerticalAlignment="Bottom"
@@ -27,12 +30,17 @@
 				   Height="1"
 				   Margin="0 20"/>
 
-		<ItemsControl Items="{Binding LineItems}" Grid.Row="4" HorizontalAlignment="Stretch">
+		<!-- Line Item Info -->
+		<ItemsControl Items="{Binding LineItems}" Grid.Row="4">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate DataType="{x:Type model:LineItemProgress}">
 					<StackPanel Orientation="Horizontal">
 						<Label Content="{Binding Info}"/>
-						<ProgressBar Value="{Binding Progress}"/>
+						<ProgressBar Value="{Binding Progress}"
+									 Margin="0 0 0 4"
+									 VerticalAlignment="Center"
+									 Width="200" MaxWidth="200"
+									 Classes.Done="{Binding Completed}"/>
 					</StackPanel>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>

@@ -6,6 +6,13 @@ namespace PatchClient.Models
 {
     public class LineItemProgress : ReactiveObject
     {
+        private bool _Completed = false;
+        public bool Completed
+        {
+            get => _Completed;
+            set => this.RaiseAndSetIfChanged(ref _Completed, value);
+        }
+
         private int total = 0;
 
         private string _Info = "";
@@ -22,9 +29,13 @@ namespace PatchClient.Models
             set => this.RaiseAndSetIfChanged(ref _Progress, value);
         }
 
-        public void UpdateProgress(int Count)
+        public void UpdateProgress(int RemainingCount)
         {
-            Progress = (int)Math.Floor((double)Count / total * 100);
+            if (Completed) return; //this doesn't work right ... need to look at it.
+
+            Progress = (int)Math.Floor((double)RemainingCount / total * 100);
+
+            if (Progress == 100) Completed = true;
         }
 
         public LineItemProgress(LineItem Item)

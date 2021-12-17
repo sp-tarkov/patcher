@@ -12,12 +12,13 @@ namespace PatcherUtils
         /// </summary>
         public static string TempDir = "PATCHER_TEMP".FromCwd();
 
-        private static string SevenZExe = "7za.exe";
 
         /// <summary>
         /// The folder that the patches will be stored in
         /// </summary>
-        public static string PatchFolder = "Aki_Data\\Patcher";
+        public static string PatchFolder = "Aki_Patches";
+
+        private static string SevenZExe = "7za.exe";
 
         /// <summary>
         /// The path to the 7za.exe file in the <see cref="TempDir"/>
@@ -29,6 +30,13 @@ namespace PatcherUtils
         /// The path to the patcher.exe file in the <see cref="TempDir"/>
         /// </summary>
         public static string PatcherClientPath = $"{TempDir}\\{PatcherClient}";
+
+        private static string XDelta3EXE = "xdelta3.exe";
+
+        /// <summary>
+        /// The path to the xdelta3.exe flie in the <see cref="TempDir"/>
+        /// </summary>
+        public static string XDelta3Path = $"{TempDir}\\{XDelta3EXE}";
 
         /// <summary>
         /// Streams embedded resources out of the assembly
@@ -71,6 +79,11 @@ namespace PatcherUtils
                     case string a when a.EndsWith(PatcherClient):
                         {
                             StreamResourceOut(resource, PatcherClientPath);
+                            break;
+                        }
+                    case string a when a.EndsWith(XDelta3EXE):
+                        {
+                            StreamResourceOut(resource, XDelta3Path);
                             break;
                         }
                 }

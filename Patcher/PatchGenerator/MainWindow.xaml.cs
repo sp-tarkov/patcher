@@ -120,13 +120,14 @@ namespace PatchGenerator
             GenProgressBar.DispatcherSetIndetermination(false);
 
             //generate patches
-            FileCompare bc = new FileCompare(targetFolder, compareFolder, patchBase);
+            //TODO - fix these weird variable names (why did I do this?)
+            PatchHelper patcher = new PatchHelper(compareFolder, targetFolder, patchBase);
 
-            bc.ProgressChanged += Bc_ProgressChanged;
+            patcher.ProgressChanged += patcher_ProgressChanged;
 
-            if (!bc.CompareAll())
+            if (!patcher.GeneratePatches())
             {
-                MessageBox.Show("Failed to generate diffs.", ":(", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("One of the provided folder paths doesn't exist.", "Oops  :(", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             //Copy patch client to output folder
@@ -142,7 +143,7 @@ namespace PatchGenerator
             GenProgressMessageLabel.DispaatcherSetContent("Done");
         }
 
-        private void Bc_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
+        private void patcher_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
             string additionalInfo = "";
             foreach (LineItem item in AdditionalLineItems)

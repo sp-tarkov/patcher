@@ -21,7 +21,7 @@ namespace PatcherUtils
         private int newCount;
         private int delCount;
 
-        private List<LineItem> AdditionalInfo;
+        private List<LineItem> AdditionalInfo = new List<LineItem>();
 
         public event ProgressChangedHandler ProgressChanged;
 
@@ -51,7 +51,8 @@ namespace PatcherUtils
             Process.Start(new ProcessStartInfo
             {
                 FileName = LazyOperations.XDelta3Path,
-                Arguments = $"-d -f -s \"{SourceFilePath}\" \"{DeltaFilePath}\" \"{decodedPath}\""
+                Arguments = $"-d -f -s \"{SourceFilePath}\" \"{DeltaFilePath}\" \"{decodedPath}\"",
+                CreateNoWindow = true
             })
             .WaitForExit();
 
@@ -68,14 +69,15 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFilePath, SourceFolder, "delta");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name, ""));
+            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name+".delta", ""));
 
             //TODO - don't hardcode FileName
 
             Process.Start(new ProcessStartInfo
             {
                 FileName = LazyOperations.XDelta3Path,
-                Arguments = $"-0 -e -f -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\""
+                Arguments = $"-0 -e -f -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
+                CreateNoWindow = true
             })
             .WaitForExit();
         }
@@ -86,7 +88,7 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFile, SourceFolder, "del");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name, ""));
+            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name+".del", ""));
 
             File.Create(deltaPath);
         }
@@ -97,7 +99,7 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(TargetFile, TargetFolder, "new");
 
-            Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name, ""));
+            Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name+".new", ""));
 
             targetSourceInfo.CopyTo(deltaPath, true);
         }
@@ -140,6 +142,7 @@ namespace PatcherUtils
                     CreateNewFile(targetFile.FullName);
 
                     newCount++;
+                    filesProcessed++;
 
                     RaiseProgressChanged(filesProcessed, fileCountTotal, targetFile.Name, AdditionalInfo.ToArray());
 
@@ -152,6 +155,10 @@ namespace PatcherUtils
                 SourceFiles.Remove(sourceFile);
 
                 deltaCount++;
+                filesProcessed++;
+
+                AdditionalInfo[0].ItemValue = deltaCount.ToString();
+                AdditionalInfo[1].ItemValue = newCount.ToString();
 
                 RaiseProgressChanged(filesProcessed, fileCountTotal, targetFile.Name, AdditionalInfo.ToArray());
             }
@@ -261,7 +268,11 @@ namespace PatcherUtils
                 RaiseProgressChanged(filesProcessed, fileCountTotal, deltaFile.Name, AdditionalInfo.ToArray());
             }
 
-            return "Patching Complete";
+            LazyOperations.CleanupTempDir();
+
+            Directory.Delete(LazyOperations.PatchFolder, true);
+
+            return $"Patching Complete. You can delete the patcher.exe file.";
         }
     }
 }

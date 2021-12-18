@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "PatchClient": {
+      "commandName": "Project"
+    }
+  }
+}

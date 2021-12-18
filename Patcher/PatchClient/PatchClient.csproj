@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\xdelta3.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\xdelta3.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PatcherUtils\PatcherUtils.csproj" />
   </ItemGroup>
 

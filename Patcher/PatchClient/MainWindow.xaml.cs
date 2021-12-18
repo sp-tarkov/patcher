@@ -27,6 +27,9 @@ namespace PatchClient
 
                 try
                 {
+                    LazyOperations.CleanupTempDir();
+                    LazyOperations.PrepTempDir();
+
                     string message = patcher.ApplyPatches();
 
                     MessageBox.Show(message, "Patcher");

@@ -21,24 +21,18 @@ namespace PatchClient
         {
             Task.Run(() =>
             {
-                FilePatcher bp = new FilePatcher()
-                {
-                    TargetBase = Environment.CurrentDirectory,
-                    PatchBase = LazyOperations.PatchFolder.FromCwd()
-                };
+                PatchHelper patcher = new PatchHelper(Environment.CurrentDirectory, null, LazyOperations.PatchFolder.FromCwd());
 
-                bp.ProgressChanged += Bp_ProgressChanged;
+                patcher.ProgressChanged += patcher_ProgressChanged;
 
                 try
                 {
-                    if (bp.Run())
-                    {
-                        MessageBox.Show("Patch completed without issues", "Patching Successful");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to patch client.", "Patching Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    LazyOperations.CleanupTempDir();
+                    LazyOperations.PrepTempDir();
+
+                    string message = patcher.ApplyPatches();
+
+                    MessageBox.Show(message, "Patcher");
                 }
                 catch(Exception ex)
                 {
@@ -54,7 +48,7 @@ namespace PatchClient
             });
         }
 
-        private void Bp_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
+        private void patcher_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
             string additionalInfo = "";
             foreach (LineItem item in AdditionalLineItems)

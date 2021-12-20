@@ -1,12 +1,19 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.PreviewWith>
-        <Border Padding="20">
-            <!-- Add Controls for Previewer Here -->
-        </Border>
-    </Design.PreviewWith>
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:cc="using:PatchClient.CustomControls">
+	<Design.PreviewWith>
+		<Border Padding="20">
+			<!-- Add Controls for Previewer Here -->
+		</Border>
+	</Design.PreviewWith>
 
-    <!-- Add Styles Here -->
+	<!-- Add Styles Here -->
+
+	<Style Selector="cc|TitleBar">
+		<Setter Property="Background" Value="{StaticResource AKI_Background_Dark}"/>
+		<Setter Property="Foreground" Value="{StaticResource AKI_Foreground_Light}"/>
+	</Style>
+
 	<Style Selector="Label.blue">
 		<Setter Property="Foreground" Value="DodgerBlue"/>
 	</Style>
@@ -19,7 +26,7 @@
 			</Transitions>
 		</Setter>
 	</Style>
-	
+
 	<Style Selector="ProgressBar.Done /template/ Border">
 		<Setter Property="CornerRadius" Value="0"/>
 		<Setter Property="Width" Value="5"/>

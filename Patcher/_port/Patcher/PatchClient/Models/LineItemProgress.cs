@@ -13,7 +13,7 @@ namespace PatchClient.Models
             set => this.RaiseAndSetIfChanged(ref _Completed, value);
         }
 
-        private int total = 0;
+        public int Total { get; private set; } = 0;
 
         private string _Info = "";
         public string Info
@@ -29,11 +29,22 @@ namespace PatchClient.Models
             set => this.RaiseAndSetIfChanged(ref _Progress, value);
         }
 
+        private string _ProgressInfo = "";
+        public string ProgressInfo
+        {
+            get => _ProgressInfo;
+            set => this.RaiseAndSetIfChanged(ref _ProgressInfo, value);
+        }
+
         public void UpdateProgress(int RemainingCount)
         {
-            if (Completed) return; //this doesn't work right ... need to look at it.
+            if (Completed) return;
 
-            Progress = (int)Math.Floor((double)RemainingCount / total * 100);
+            int processed = Total - RemainingCount;
+
+            Progress = (int)Math.Floor((double)processed / Total * 100);
+
+            ProgressInfo = $"{processed} / {Total}";
 
             if (Progress == 100) Completed = true;
         }
@@ -42,9 +53,9 @@ namespace PatchClient.Models
         {
             Info = Item.ItemText;
 
-            total = Item.ItemValue;
+            Total = Item.ItemValue;
 
-            Progress = (int)Math.Floor((double)Item.ItemValue / total * 100);
+            Progress = (int)Math.Floor((double)Item.ItemValue / Total * 100);
         }
     }
 }

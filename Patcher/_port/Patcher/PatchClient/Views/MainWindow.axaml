@@ -3,19 +3,33 @@
         xmlns:vm="using:PatchClient.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:cc="using:PatchClient.CustomControls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="PatchClient.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Patch Client"
 		Height="300" Width="600"
 		WindowStartupLocation="CenterScreen"
+		ExtendClientAreaToDecorationsHint="True"
+		ExtendClientAreaChromeHints="NoChrome"
+		ExtendClientAreaTitleBarHeightHint="-1"
 		>
+	<Window.Styles>
+		<StyleInclude Source="/Assets/Styles.axaml"/>
+	</Window.Styles>
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-	<DockPanel LastChildFill="True">
-		<ContentControl Content="{Binding navigator.SelectedViewModel}"/>
-	</DockPanel>
+	<Grid RowDefinitions="AUTO,*">
+
+
+		<cc:TitleBar Title="Patch Client"
+					 XButtonCommand="{Binding CloseCommand}"/>
+
+		<DockPanel LastChildFill="True" Grid.Row="1">
+			<ContentControl Content="{Binding navigator.SelectedViewModel}"/>
+		</DockPanel>
+	</Grid>
 </Window>

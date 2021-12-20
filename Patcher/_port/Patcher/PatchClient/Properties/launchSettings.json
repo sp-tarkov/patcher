@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PatchClient": {
+      "commandName": "Executable",
+      "executablePath": "Z:\\SPTarkov\\Patcher\\Patcher\\_port\\Patcher\\PatchClient\\bin\\Debug\\net5.0\\PatchClient.exe",
+      "workingDirectory": "C:\\Users\\JohnO\\Desktop\\12.12.2.16165"
+    }
+  }
+}

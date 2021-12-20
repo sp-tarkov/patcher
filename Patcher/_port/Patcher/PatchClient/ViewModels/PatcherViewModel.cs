@@ -49,9 +49,9 @@ namespace PatchClient.ViewModels
         {
             Task.Run(() =>
             {
-                LineItem x = new LineItem("test 1", 100);
+                LineItem x = new LineItem("test 1", 30);
                 LineItem xx = new LineItem("test 2", 100);
-                LineItem xxx = new LineItem("test 3", 100);
+                LineItem xxx = new LineItem("test 3", 70);
 
                 LineItems.Add(new LineItemProgress(x));
                 LineItems.Add(new LineItemProgress(xx));
@@ -65,11 +65,11 @@ namespace PatchClient.ViewModels
 
                     foreach(var item in LineItems)
                     {
-                        item.UpdateProgress(i);
+                        item.UpdateProgress(item.Total - i);
                     }
                 }
 
-                //navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
+                navigator.SelectedViewModel = new MessageViewModel("Test Run Complete").WithDelay(400);
             });
         }
 
@@ -77,40 +77,24 @@ namespace PatchClient.ViewModels
         {
             Task.Run(() =>
             {
-                FilePatcher bp = new FilePatcher()
-                {
-                    TargetBase = Environment.CurrentDirectory,
-                    PatchBase = LazyOperations.PatchFolder.FromCwd()
-                };
+                PatchHelper patcher = new PatchHelper(Environment.CurrentDirectory, null, LazyOperations.PatchFolder);
 
-                bp.ProgressChanged += Bp_ProgressChanged;
+                patcher.ProgressChanged += patcher_ProgressChanged;
 
-                try
-                {
-                    if (bp.Run())
-                    {
-                        //navigator.SelectedViewModel = new MessageViewModel("Patch completed without issues");
-                    }
-                    else
-                    {
-                        navigator.SelectedViewModel = new MessageViewModel("Failed to patch client");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    navigator.SelectedViewModel = new MessageViewModel(ex.Message);
-                }
+                string message = patcher.ApplyPatches();
+
+                navigator.SelectedViewModel = new MessageViewModel(message).WithDelay(400);
             });
         }
 
-        private void Bp_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
+        private void patcher_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
             foreach (LineItem item in AdditionalLineItems)
             {
-                if (item.ItemValue <= 0) continue;
 
                 if(initLineItemProgress)
                 {
+                    if (item.ItemValue <= 0) continue;
 
                     LineItems.Add(new LineItemProgress(item));
                 }

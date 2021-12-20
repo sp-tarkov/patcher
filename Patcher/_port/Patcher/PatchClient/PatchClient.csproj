@@ -8,6 +8,10 @@
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Remove="Assets\Styles.axaml" />
     <None Remove=".gitignore" />
+    <None Remove="Resources\xdelta3.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\xdelta3.exe" />
   </ItemGroup>
 
   <ItemGroup>

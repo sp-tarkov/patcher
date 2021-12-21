@@ -22,6 +22,10 @@ namespace PatcherUtils
 
         private List<LineItem> AdditionalInfo = new List<LineItem>();
 
+        /// <summary>
+        /// Reports patch creation or application progress
+        /// </summary>
+        /// <remarks>Includes an array of <see cref="LineItem"/> with details for each type of patch</remarks>
         public event ProgressChangedHandler ProgressChanged;
 
         protected virtual void RaiseProgressChanged(int progress, int total, string Message = "", params LineItem[] AdditionalLineItems)
@@ -31,6 +35,13 @@ namespace PatcherUtils
             ProgressChanged?.Invoke(this, progress, total, percent, Message, AdditionalLineItems);
         }
 
+        /// <summary>
+        /// A helper class to create and apply patches to folders
+        /// </summary>
+        /// <param name="SourceFolder">The directory that will have patches applied to it.</param>
+        /// <param name="TargetFolder">The directory to compare against during patch creation.</param>
+        /// <param name="DeltaFolder">The directory where the patches are/will be located.</param>
+        /// <remarks><paramref name="TargetFolder"/> can be null if you only plan to apply patches.</remarks>
         public PatchHelper(string SourceFolder, string TargetFolder, string DeltaFolder)
         {
             this.SourceFolder = SourceFolder;
@@ -38,11 +49,24 @@ namespace PatcherUtils
             this.DeltaFolder = DeltaFolder;
         }
 
+        /// <summary>
+        /// Get the delta folder file path. 
+        /// </summary>
+        /// <param name="SourceFilePath"></param>
+        /// <param name="SourceFolderPath"></param>
+        /// <param name="FileExtension">The extension to append to the file</param>
+        /// <returns>A file path inside the delta folder</returns>
         private string GetDeltaPath(string SourceFilePath, string SourceFolderPath, string FileExtension)
         {
             return Path.Join(DeltaFolder, $"{SourceFilePath.Replace(SourceFolderPath, "")}.{FileExtension}");
         }
 
+        /// <summary>
+        /// Check if two files have the same MD5 hash
+        /// </summary>
+        /// <param name="SourceFilePath"></param>
+        /// <param name="TargetFilePath"></param>
+        /// <returns>True if the hashes match</returns>
         private bool CompareFileHashes(string SourceFilePath, string TargetFilePath)
         {
             using (MD5 md5Service = MD5.Create())
@@ -56,6 +80,11 @@ namespace PatcherUtils
             }
         }
 
+        /// <summary>
+        /// Apply a delta to a file using xdelta
+        /// </summary>
+        /// <param name="SourceFilePath"></param>
+        /// <param name="DeltaFilePath"></param>
         private void ApplyDelta(string SourceFilePath, string DeltaFilePath)
         {
             string decodedPath = SourceFilePath + ".decoded";
@@ -75,6 +104,12 @@ namespace PatcherUtils
             }
         }
 
+        /// <summary>
+        /// Create a .delta file using xdelta
+        /// </summary>
+        /// <param name="SourceFilePath"></param>
+        /// <param name="TargetFilePath"></param>
+        /// <remarks>Used to patch an existing file with xdelta</remarks>
         private void CreateDelta(string SourceFilePath, string TargetFilePath)
         {
             FileInfo sourceFileInfo = new FileInfo(SourceFilePath);
@@ -94,6 +129,11 @@ namespace PatcherUtils
             .WaitForExit();
         }
 
+        /// <summary>
+        /// Create a .del file
+        /// </summary>
+        /// <param name="SourceFile"></param>
+        /// <remarks>Used to mark a file for deletion</remarks>
         private void CreateDelFile(string SourceFile)
         {
             FileInfo sourceFileInfo = new FileInfo(SourceFile);
@@ -105,6 +145,11 @@ namespace PatcherUtils
             File.Create(deltaPath);
         }
 
+        /// <summary>
+        /// Create a .new file
+        /// </summary>
+        /// <param name="TargetFile"></param>
+        /// <remarks>Used to mark a file that needs to be added</remarks>
         private void CreateNewFile(string TargetFile)
         {
             FileInfo targetSourceInfo = new FileInfo(TargetFile);
@@ -116,6 +161,11 @@ namespace PatcherUtils
             targetSourceInfo.CopyTo(deltaPath, true);
         }
 
+        /// <summary>
+        /// Generate a full set of patches using the source and target folders specified during contruction./>
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>Patches are created in the delta folder specified during contruction</remarks>
         public bool GeneratePatches()
         {
             //get all directory information needed
@@ -162,7 +212,7 @@ namespace PatcherUtils
                 }
 
                 //if a matching source file was found, check the file hashes and get the delta.
-                if(CompareFileHashes(sourceFile.FullName, targetFile.FullName))
+                if(!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
                 {
                     CreateDelta(sourceFile.FullName, targetFile.FullName);
                     deltaCount++;
@@ -199,6 +249,10 @@ namespace PatcherUtils
             return true;
         }
 
+        /// <summary>
+        /// Apply a set of patches using the source and delta folders specified during construction.
+        /// </summary>
+        /// <returns></returns>
         public string ApplyPatches()
         {
             //get needed directory information

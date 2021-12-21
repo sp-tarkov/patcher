@@ -27,6 +27,15 @@ namespace PatchClient.CustomControls
             set => SetValue(TitleProperty, value);
         }
 
+        public static readonly StyledProperty<IBrush> XButtonForegroundProperty =
+            AvaloniaProperty.Register<TitleBar, IBrush>(nameof(XButtonForeground));
+
+        public IBrush XButtonForeground
+        {
+            get => GetValue(XButtonForegroundProperty);
+            set => SetValue(XButtonForegroundProperty, value);
+        }
+
         public static new readonly StyledProperty<IBrush> ForegroundProperty =
             AvaloniaProperty.Register<TitleBar, IBrush>(nameof(Foreground));
 

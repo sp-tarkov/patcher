@@ -21,12 +21,11 @@
 		<!-- Current Patch Text -->
 		<Label Content="{Binding ProgressMessage}"/>
 		<Label Content="{Binding PatchMessage}" Grid.Row="1"
-			   Classes="blue"/>
+			   Classes="dark"/>
 		<ProgressBar Grid.Row="2" Value="{Binding PatchPercent}"/>
 
 		<Separator Grid.Row="3"
 				   VerticalAlignment="Bottom"
-				   Background="Gainsboro"
 				   Height="1"
 				   Margin="0 20"/>
 
@@ -34,15 +33,17 @@
 		<ItemsControl Items="{Binding LineItems}" Grid.Row="4">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate DataType="{x:Type model:LineItemProgress}">
-					<StackPanel Orientation="Horizontal">
-						<Label Content="{Binding Info}"/>
-						<Label Content="{Binding ProgressInfo}"/>
-						<ProgressBar Value="{Binding Progress}"
+          <Grid ColumnDefinitions="AUTO,3*,AUTO,*,AUTO">
+						<Label Content="{Binding Info}"
+                   />
+						<Label Content="{Binding ProgressInfo}" Grid.Column="2"
+                   FontSize="12"/>
+						<ProgressBar Value="{Binding Progress}" Grid.Column="4"
 									 Margin="0 0 0 4"
 									 VerticalAlignment="Center"
 									 Width="200" MaxWidth="200"
-									 Classes.Done="{Binding Completed}"/>
-					</StackPanel>
+									 Classes.done="{Binding Completed}"/>
+          </Grid>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>

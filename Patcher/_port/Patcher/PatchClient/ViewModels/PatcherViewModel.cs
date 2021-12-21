@@ -44,35 +44,6 @@ namespace PatchClient.ViewModels
             RunPatcher();
         }
 
-        [Obsolete]
-        private void Test()
-        {
-            Task.Run(() =>
-            {
-                LineItem x = new LineItem("test 1", 30);
-                LineItem xx = new LineItem("test 2", 100);
-                LineItem xxx = new LineItem("test 3", 70);
-
-                LineItems.Add(new LineItemProgress(x));
-                LineItems.Add(new LineItemProgress(xx));
-                LineItems.Add(new LineItemProgress(xxx));
-
-                for (int i = 0; i <= 100; i++)
-                {
-                    System.Threading.Thread.Sleep(20);
-                    PatchPercent = i;
-                    ProgressMessage = $"Patching @ {i}%";
-
-                    foreach(var item in LineItems)
-                    {
-                        item.UpdateProgress(item.Total - i);
-                    }
-                }
-
-                navigator.SelectedViewModel = new MessageViewModel("Test Run Complete").WithDelay(400);
-            });
-        }
-
         private void RunPatcher()
         {
             Task.Run(() =>

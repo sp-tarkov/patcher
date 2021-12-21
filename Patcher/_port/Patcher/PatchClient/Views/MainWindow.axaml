@@ -8,11 +8,12 @@
         x:Class="PatchClient.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Patch Client"
-		Height="300" Width="600"
+		Height="240" Width="600"
 		WindowStartupLocation="CenterScreen"
 		ExtendClientAreaToDecorationsHint="True"
 		ExtendClientAreaChromeHints="NoChrome"
 		ExtendClientAreaTitleBarHeightHint="-1"
+    Background="{StaticResource AKI_Background_Light}"
 		>
 	<Window.Styles>
 		<StyleInclude Source="/Assets/Styles.axaml"/>

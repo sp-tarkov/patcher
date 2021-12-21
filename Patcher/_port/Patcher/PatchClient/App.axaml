@@ -22,7 +22,7 @@
 		<SolidColorBrush x:Key="AKI_Foreground_Light" Color="{StaticResource AKI_White}"/>
 		<SolidColorBrush x:Key="AKI_Background_Light" Color="{StaticResource AKI_Gray}"/>
 		<SolidColorBrush x:Key="AKI_Background_Dark" Color="{StaticResource AKI_DarkGray}"/>
-		<SolidColorBrush x:Key="AKI_Background_Yellow" Color="{StaticResource AKI_Yellow}"/>
-		<SolidColorBrush x:Key="AKI_Background_DarkGrayBlue" Color="{StaticResource AKI_DarkGrayBlue}"/>
+		<SolidColorBrush x:Key="AKI_Brush_Yellow" Color="{StaticResource AKI_Yellow}"/>
+		<SolidColorBrush x:Key="AKI_Brush_DarkGrayBlue" Color="{StaticResource AKI_DarkGrayBlue}"/>
 	</Application.Resources>
 </Application>

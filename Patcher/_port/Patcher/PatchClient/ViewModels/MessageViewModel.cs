@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using ReactiveUI;
+﻿using ReactiveUI;
 
 namespace PatchClient.ViewModels
 {

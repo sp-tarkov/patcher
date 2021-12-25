@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="PatchGenerator.CustomControls.FolderSelector"
+             DragDrop.AllowDrop="True"
+             Background="Transparent"
+             >
+  <UserControl.Styles>
+    <Style Selector="Border">
+      <Setter Property="BorderBrush" Value="{StaticResource AKI_Background_Dark}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
+    <Style Selector="Border.folderSelected">
+      <Setter Property="BorderBrush" Value="{StaticResource AKI_Brush_Yellow}"/>
+    </Style>
+    
+    <Style Selector="TextBlock.folderSelected">
+      <Setter Property="Foreground" Value="{StaticResource AKI_Brush_Yellow}"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes.folderSelected="{Binding FolderSelected, RelativeSource={
+                                   RelativeSource AncestorType=UserControl}}">
+    
+    <TextBlock Text="{Binding FolderPath, RelativeSource={
+                      RelativeSource AncestorType=UserControl}}"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Classes.folderSelected="{Binding FolderSelected, RelativeSource={
+                                        RelativeSource AncestorType=UserControl}}"
+               TextWrapping="Wrap"
+               />
+  </Border>
+  
+</UserControl>

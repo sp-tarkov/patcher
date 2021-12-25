@@ -2,7 +2,71 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:model="using:PatchGenerator.Models"
+             xmlns:cc="using:PatchGenerator.CustomControls"
+             xmlns:att="using:PatchGenerator.AttachedProperties"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PatchGenerator.Views.PatchGenerationView">
-  Welcome to Avalonia!
+
+  <UserControl.Styles>
+    <StyleInclude Source="/Assets/Styles.axaml"/>
+  </UserControl.Styles>
+  
+  <Grid RowDefinitions="AUTO,*,AUTO,AUTO,AUTO">
+
+    <ItemsControl Items="{Binding PatchItemLegendCollection}">
+      
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Grid.Column="1"
+                      HorizontalAlignment="Center"
+                      Margin="10"
+                      Spacing="30"
+                      />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type model:PatchItem}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <Rectangle Fill="{Binding Color}" Height="10" Width="10"/>
+            <TextBlock Text="{Binding Name}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+      
+    </ItemsControl>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1"
+                  ScrollChanged="scrollChanged"
+                  att:RandomBoolAttProp.RandomBool="{Binding AutoScroll}"
+                  >
+      <ItemsControl Items="{Binding PatchItemCollection}"
+                    Background="Transparent"
+                    >
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="{x:Type model:PatchItem}">
+            <TextBlock Text="{Binding Name}"
+                       TextWrapping="Wrap"
+                       Foreground="{Binding Color}"
+                       />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+        
+      </ItemsControl>
+      
+    </ScrollViewer>
+    
+    <ProgressBar Grid.Row="2" Value="{Binding PatchPercent}" Margin="10"/>
+
+    <Grid ColumnDefinitions="AUTO,*,AUTO" Grid.Row="3" Margin="10 0">
+      <Label Content="{Binding ProgressMessage}"/>
+      <Label Content="{Binding PatchPercent, StringFormat={}{0}%}" Grid.Column="2"/>
+    </Grid>
+    
+    <CheckBox Content="AutoScroll" Grid.Row="4" HorizontalAlignment="Right" Margin="10"
+              IsChecked="{Binding AutoScroll}"/>
+    
+    
+  </Grid>
 </UserControl>

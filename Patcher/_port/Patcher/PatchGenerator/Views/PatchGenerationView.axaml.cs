@@ -1,6 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using PatchGenerator.AttachedProperties;
 
 namespace PatchGenerator.Views
 {
@@ -14,6 +14,19 @@ namespace PatchGenerator.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        public void scrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (sender is ScrollViewer scrollViewer)
+            {
+                bool autoScroll = scrollViewer.GetValue(RandomBoolAttProp.RandomBoolProperty);
+
+                if (autoScroll)
+                {
+                    scrollViewer.ScrollToEnd();
+                }
+            }
         }
     }
 }

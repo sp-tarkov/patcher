@@ -97,10 +97,9 @@ namespace PatcherUtils
             })
             .WaitForExit();
 
-            if(File.Exists(decodedPath))
+            if (File.Exists(decodedPath))
             {
-                File.Delete(SourceFilePath);
-                File.Move(decodedPath, SourceFilePath);
+                File.Move(decodedPath, SourceFilePath, true);
             }
         }
 
@@ -116,7 +115,7 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFilePath, SourceFolder, "delta");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name+".delta", ""));
+            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".delta", ""));
 
             //TODO - don't hardcode FileName
 
@@ -140,7 +139,7 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFile, SourceFolder, "del");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name+".del", ""));
+            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".del", ""));
 
             File.Create(deltaPath);
         }
@@ -156,7 +155,7 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(TargetFile, TargetFolder, "new");
 
-            Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name+".new", ""));
+            Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name + ".new", ""));
 
             targetSourceInfo.CopyTo(deltaPath, true);
         }
@@ -179,6 +178,9 @@ namespace PatcherUtils
                 //One of the directories doesn't exist
                 return false;
             }
+
+            LazyOperations.CleanupTempDir();
+            LazyOperations.PrepTempDir();
 
             List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
 
@@ -206,15 +208,18 @@ namespace PatcherUtils
                     newCount++;
                     filesProcessed++;
 
-                    RaiseProgressChanged(filesProcessed, fileCountTotal, targetFile.Name, AdditionalInfo.ToArray());
+                    RaiseProgressChanged(filesProcessed, fileCountTotal, $"{targetFile.FullName.Replace(TargetFolder, "...")}.new", AdditionalInfo.ToArray());
 
                     continue;
                 }
 
+                string extension = "";
+
                 //if a matching source file was found, check the file hashes and get the delta.
-                if(!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
+                if (!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
                 {
                     CreateDelta(sourceFile.FullName, targetFile.FullName);
+                    extension = ".delta";
                     deltaCount++;
                 }
 
@@ -225,7 +230,7 @@ namespace PatcherUtils
                 AdditionalInfo[0].ItemValue = deltaCount;
                 AdditionalInfo[1].ItemValue = newCount;
 
-                RaiseProgressChanged(filesProcessed, fileCountTotal, targetFile.Name, AdditionalInfo.ToArray());
+                RaiseProgressChanged(filesProcessed, fileCountTotal, $"{targetFile.FullName.Replace(TargetFolder, "...")}{extension}", AdditionalInfo.ToArray());
             }
 
             //Any remaining source files do not exist in the target folder and can be removed.
@@ -243,7 +248,7 @@ namespace PatcherUtils
                 AdditionalInfo[2].ItemValue = delCount;
 
                 filesProcessed++;
-                RaiseProgressChanged(filesProcessed, fileCountTotal, "", AdditionalInfo.ToArray());
+                RaiseProgressChanged(filesProcessed, fileCountTotal, $"{delFile.FullName.Replace(SourceFolder, "...")}.del", AdditionalInfo.ToArray());
             }
 
             return true;
@@ -290,14 +295,14 @@ namespace PatcherUtils
 
             foreach (FileInfo deltaFile in deltaDir.GetFiles("*", SearchOption.AllDirectories))
             {
-                switch(deltaFile.Extension)
+                switch (deltaFile.Extension)
                 {
                     case ".delta":
                         {
                             //apply delta
                             FileInfo sourceFile = SourceFiles.Find(f => f.FullName.Replace(sourceDir.FullName, "") == deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".delta", ""));
 
-                            if(sourceFile == null)
+                            if (sourceFile == null)
                             {
                                 return $"Failed to find matching source file for '{deltaFile.FullName}'";
                             }
@@ -310,7 +315,7 @@ namespace PatcherUtils
                         }
                     case ".new":
                         {
-                            if(newCount == 2 || newCount == 1 || newCount == 0)
+                            if (newCount == 2 || newCount == 1 || newCount == 0)
                             {
 
                             }
@@ -318,7 +323,7 @@ namespace PatcherUtils
                             //copy new file
                             string destination = Path.Join(sourceDir.FullName, deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".new", ""));
 
-                            File.Copy(deltaFile.FullName, destination);
+                            File.Copy(deltaFile.FullName, destination, true);
 
                             newCount--;
 

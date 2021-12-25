@@ -1,12 +1,12 @@
 ﻿using Avalonia;
 using PatchClient.Models;
 using PatcherUtils;
+using ReactiveUI;
 using Splat;
 using System;
-using ReactiveUI;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.ObjectModel;
 
 namespace PatchClient.ViewModels
 {
@@ -63,7 +63,7 @@ namespace PatchClient.ViewModels
             foreach (LineItem item in AdditionalLineItems)
             {
 
-                if(initLineItemProgress)
+                if (initLineItemProgress)
                 {
                     if (item.ItemValue <= 0) continue;
 

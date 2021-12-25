@@ -58,8 +58,7 @@ namespace PatcherUtils
 
             if(File.Exists(decodedPath))
             {
-                File.Delete(SourceFilePath);
-                File.Move(decodedPath, SourceFilePath);
+                File.Move(decodedPath, SourceFilePath, true);
             }
         }
 

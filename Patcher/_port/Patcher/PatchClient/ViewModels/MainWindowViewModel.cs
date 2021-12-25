@@ -10,7 +10,7 @@ namespace PatchClient.ViewModels
     {
         public ICommand CloseCommand => ReactiveCommand.Create(() =>
         {
-            if(Application.Current.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktopApp)
+            if (Application.Current.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktopApp)
             {
                 desktopApp.MainWindow.Close();
             }

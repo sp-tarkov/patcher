@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -67,9 +66,9 @@ namespace PatcherUtils
         /// </summary>
         public static void PrepTempDir()
         {
-            foreach(string resource in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            foreach (string resource in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
-                switch(resource)
+                switch (resource)
                 {
                     case string a when a.EndsWith(SevenZExe):
                         {
@@ -108,7 +107,7 @@ namespace PatcherUtils
         {
             DirectoryInfo dir = new DirectoryInfo(TempDir);
 
-            if(dir.Exists)
+            if (dir.Exists)
             {
                 dir.Delete(true);
             }

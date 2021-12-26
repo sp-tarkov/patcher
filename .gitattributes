@@ -1,0 +1,2 @@
+/Patcher/_port/Patcher/PatchGenerator/Resources/PatchClient.exe filter=lfs diff=lfs merge=lfs -text
+/Patcher/PatcherUtils/Resources/PatchClient.exe filter=lfs diff=lfs merge=lfs -text

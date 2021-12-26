@@ -3,10 +3,9 @@
     public class LineItem
     {
         public string ItemText;
-        public string ItemValue;
-        public bool HasValue => ItemValue != "";
+        public int ItemValue;
 
-        public LineItem(string ItemText, string ItemValue = "")
+        public LineItem(string ItemText, int ItemValue = 0)
         {
             this.ItemText = ItemText;
             this.ItemValue = ItemValue;

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PatchGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "\"OutputFolderName::Patcher_12.3.4.5_to_6.7.8.9\" \"SourceFolderPath::C:\\Users\\JohnO\\Desktop\\12.12.10.16338\" \"TargetFolderPath::C:\\Users\\JohnO\\Desktop\\12.11.7.15680\" \"AutoZip::True\"",
+      "workingDirectory": "C:\\Users\\JohnO\\Desktop\\Patcher\\"
+    }
+  }
+}

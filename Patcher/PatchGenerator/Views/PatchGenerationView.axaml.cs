@@ -1,10 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
 using PatchGenerator.AttachedProperties;
+using PatchGenerator.ViewModels;
+using ReactiveUI;
 
 namespace PatchGenerator.Views
 {
-    public partial class PatchGenerationView : UserControl
+    public partial class PatchGenerationView : ReactiveUserControl<PatchGenerationViewModel>
     {
         public PatchGenerationView()
         {
@@ -13,6 +16,7 @@ namespace PatchGenerator.Views
 
         private void InitializeComponent()
         {
+            this.WhenActivated(disposables => { });
             AvaloniaXamlLoader.Load(this);
         }
 

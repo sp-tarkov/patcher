@@ -1,13 +1,15 @@
 using Avalonia;
-using PatchClient.Models;
 using ReactiveUI;
-using Splat;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 
 namespace PatchClient.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ReactiveObject, IActivatableViewModel, IScreen
     {
+        public ViewModelActivator Activator { get; } = new ViewModelActivator();
+        public RoutingState Router { get; } = new RoutingState();
+
         public ICommand CloseCommand => ReactiveCommand.Create(() =>
         {
             if (Application.Current.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktopApp)
@@ -16,12 +18,12 @@ namespace PatchClient.ViewModels
             }
         });
 
-        public ViewNavigator navigator { get; set; } = new ViewNavigator();
         public MainWindowViewModel()
         {
-            navigator.SelectedViewModel = new PatcherViewModel();
-
-            Locator.CurrentMutable.RegisterConstant(navigator, typeof(ViewNavigator));
+            this.WhenActivated((CompositeDisposable disposable) =>
+            {
+                Router.Navigate.Execute(new PatcherViewModel(this));
+            });
         }
     }
 }

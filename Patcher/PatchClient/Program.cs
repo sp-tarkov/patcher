@@ -1,6 +1,9 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
+using Splat;
 using System;
+using ReactiveUI;
+using System.Reflection;
 
 namespace PatchClient
 {
@@ -15,9 +18,14 @@ namespace PatchClient
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+        {
+            Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
+
+            return AppBuilder.Configure<App>()
+                .UseReactiveUI()
                 .UsePlatformDetect()
                 .LogToTrace()
                 .UseReactiveUI();
+        }
     }
 }

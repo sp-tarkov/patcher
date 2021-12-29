@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,7 +43,7 @@ namespace PatchGenerator.ViewModels
         private Stopwatch patchGenStopwatch = new Stopwatch();
 
         private readonly PatchGenInfo generationInfo;
-        public PatchGenerationViewModel(PatchGenInfo GenerationInfo)
+        public PatchGenerationViewModel(IScreen Host, PatchGenInfo GenerationInfo) : base(Host)
         {
             generationInfo = GenerationInfo;
 
@@ -55,17 +56,16 @@ namespace PatchGenerator.ViewModels
                 });
             }
 
-            GeneratePatches();
+            this.WhenActivated((CompositeDisposable dissposables) =>
+            {
+                GeneratePatches();
+            });
         }
 
         public void GeneratePatches()
         {
             Task.Run(() =>
             {
-                //Slight delay to avoid some weird race condition in avalonia core, seems to be a bug, but also maybe I'm just stupid, idk -waffle
-                //Error without delay: An item with the same key has already been added. Key: [1, Avalonia.Controls.Generators.ItemContainerInfo]
-                System.Threading.Thread.Sleep(1000);
-
                 string patchOutputFolder = Path.Join(generationInfo.PatchName.FromCwd(), LazyOperations.PatchFolder);
 
                 PatchHelper patcher = new PatchHelper(generationInfo.SourceFolderPath, generationInfo.TargetFolderPath, patchOutputFolder);

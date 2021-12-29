@@ -1,14 +1,17 @@
 using Avalonia;
 using PatchGenerator.Models;
 using ReactiveUI;
-using Splat;
-using System.Windows.Input;
+using System.Reactive;
+using System.Reactive.Disposables;
 
 namespace PatchGenerator.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class MainWindowViewModel : ReactiveObject, IActivatableViewModel, IScreen
     {
-        public ICommand CloseCommand => ReactiveCommand.Create(() =>
+        public RoutingState Router { get; } = new RoutingState();
+        public ViewModelActivator Activator { get; } = new ViewModelActivator();
+
+        public ReactiveCommand<Unit, Unit> CloseCommand => ReactiveCommand.Create(() =>
         {
             if (Application.Current.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktopApp)
             {
@@ -16,25 +19,26 @@ namespace PatchGenerator.ViewModels
             }
         });
 
-        public ViewNavigator navigator { get; set; } = new ViewNavigator();
         public MainWindowViewModel(GenStartupArgs genArgs = null)
         {
-            Locator.CurrentMutable.RegisterConstant(navigator, typeof(ViewNavigator));
-
-            if (genArgs != null && genArgs.ReadyToRun)
+            this.WhenActivated((CompositeDisposable disposables) =>
             {
-                PatchGenInfo genInfo = new PatchGenInfo();
 
-                genInfo.TargetFolderPath = genArgs.TargetFolderPath;
-                genInfo.SourceFolderPath = genArgs.SourceFolderPath;
-                genInfo.PatchName = genArgs.OutputFolderName;
-                genInfo.AutoZip = genArgs.AutoZip;
+                if (genArgs != null && genArgs.ReadyToRun)
+                {
+                    PatchGenInfo genInfo = new PatchGenInfo();
 
-                navigator.SelectedViewModel = new PatchGenerationViewModel(genInfo);
-                return;
-            }
+                    genInfo.TargetFolderPath = genArgs.TargetFolderPath;
+                    genInfo.SourceFolderPath = genArgs.SourceFolderPath;
+                    genInfo.PatchName = genArgs.OutputFolderName;
+                    genInfo.AutoZip = genArgs.AutoZip;
 
-            navigator.SelectedViewModel = new OptionsViewModel();
+                    Router.Navigate.Execute(new PatchGenerationViewModel(this, genInfo));
+                    return;
+                }
+
+                Router.Navigate.Execute(new OptionsViewModel(this));
+            });
         }
     }
 }

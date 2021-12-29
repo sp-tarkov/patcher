@@ -242,6 +242,9 @@ namespace PatcherUtils
 
             //Any remaining source files do not exist in the target folder and can be removed.
             //reset progress info
+
+            if (SourceFiles.Count == 0) return true;
+
             RaiseProgressChanged(0, SourceFiles.Count, "Processing .del files...");
             filesProcessed = 0;
             fileCountTotal = SourceFiles.Count;

@@ -1,5 +1,5 @@
 ﻿using PatchGenerator.Models;
-using Splat;
+using ReactiveUI;
 
 namespace PatchGenerator.ViewModels
 {
@@ -7,9 +7,7 @@ namespace PatchGenerator.ViewModels
     {
         public PatchGenInfo GenerationInfo { get; set; } = new PatchGenInfo();
 
-        private ViewNavigator navigator => Locator.Current.GetService<ViewNavigator>();
-
-        public OptionsViewModel()
+        public OptionsViewModel(IScreen Host) : base(Host)
         {
             GenerationInfo.SourceFolderPath = "Drop SOURCE folder here";
             GenerationInfo.TargetFolderPath = "Drop TARGET folder here";
@@ -17,7 +15,7 @@ namespace PatchGenerator.ViewModels
 
         public void GeneratePatches()
         {
-            navigator.SelectedViewModel = new PatchGenerationViewModel(GenerationInfo);
+            NavigateTo(new PatchGenerationViewModel(HostScreen, GenerationInfo));
         }
     }
 }

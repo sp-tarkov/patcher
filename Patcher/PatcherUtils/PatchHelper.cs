@@ -180,8 +180,7 @@ namespace PatcherUtils
                 return false;
             }
 
-            LazyOperations.CleanupTempDir();
-            LazyOperations.PrepTempDir();
+            LazyOperations.ExtractResourcesToTempDir();
 
             List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
 
@@ -280,8 +279,7 @@ namespace PatcherUtils
                 return "One of the supplied directories doesn't exist";
             }
 
-            LazyOperations.CleanupTempDir();
-            LazyOperations.PrepTempDir();
+            LazyOperations.ExtractResourcesToTempDir();
 
             List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
 
@@ -359,10 +357,6 @@ namespace PatcherUtils
                 ++filesProcessed;
                 RaiseProgressChanged(filesProcessed, fileCountTotal, deltaFile.Name, AdditionalInfo.ToArray());
             }
-
-            LazyOperations.CleanupTempDir();
-
-            Directory.Delete(LazyOperations.PatchFolder, true);
 
             return $"Patching Complete. You can delete the patcher.exe file.";
         }

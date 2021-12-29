@@ -43,7 +43,7 @@ namespace PatcherUtils
         /// <param name="ResourceName"></param>
         /// <param name="OutputFilePath"></param>
         /// <remarks>The resource will not be streamed out if the <paramref name="OutputFilePath"/> already exists</remarks>
-        private static void StreamResourceOut(string ResourceName, string OutputFilePath)
+        private static void StreamResourceOut(Assembly assembly, string ResourceName, string OutputFilePath)
         {
             FileInfo outputFile = new FileInfo(OutputFilePath);
 
@@ -55,7 +55,7 @@ namespace PatcherUtils
             }
 
             using (FileStream fs = File.Create(OutputFilePath))
-            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName))
+            using (Stream s = assembly.GetManifestResourceStream(ResourceName))
             {
                 s.CopyTo(fs);
             }
@@ -64,25 +64,27 @@ namespace PatcherUtils
         /// <summary>
         /// Checks the resources in the assembly and streams them to the temp directory for later use.
         /// </summary>
-        public static void PrepTempDir()
+        public static void ExtractResourcesToTempDir(Assembly assembly = null)
         {
-            foreach (string resource in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            if(assembly == null) assembly = Assembly.GetExecutingAssembly();
+
+            foreach (string resource in assembly.GetManifestResourceNames())
             {
                 switch (resource)
                 {
                     case string a when a.EndsWith(SevenZExe):
                         {
-                            StreamResourceOut(resource, SevenZExePath);
+                            StreamResourceOut(assembly, resource, SevenZExePath);
                             break;
                         }
                     case string a when a.EndsWith(PatcherClient):
                         {
-                            StreamResourceOut(resource, PatcherClientPath);
+                            StreamResourceOut(assembly, resource, PatcherClientPath);
                             break;
                         }
                     case string a when a.EndsWith(XDelta3EXE):
                         {
-                            StreamResourceOut(resource, XDelta3Path);
+                            StreamResourceOut(assembly, resource, XDelta3Path);
                             break;
                         }
                 }

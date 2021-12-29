@@ -5,8 +5,10 @@ using PatcherUtils;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace PatchClient.ViewModels
@@ -85,11 +87,17 @@ namespace PatchClient.ViewModels
         {
             Task.Run(async() =>
             {
+                LazyOperations.ExtractResourcesToTempDir(Assembly.GetExecutingAssembly());
+
                 PatchHelper patcher = new PatchHelper(Environment.CurrentDirectory, null, LazyOperations.PatchFolder);
 
                 patcher.ProgressChanged += patcher_ProgressChanged;
 
                 string message = patcher.ApplyPatches();
+
+                LazyOperations.CleanupTempDir();
+
+                Directory.Delete(LazyOperations.PatchFolder, true);
 
                 await NavigateToWithDelay(new MessageViewModel(HostScreen, message), 400);
             });

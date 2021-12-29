@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -67,6 +68,8 @@ namespace PatchGenerator.ViewModels
             Task.Run(() =>
             {
                 string patchOutputFolder = Path.Join(generationInfo.PatchName.FromCwd(), LazyOperations.PatchFolder);
+
+                LazyOperations.ExtractResourcesToTempDir(Assembly.GetExecutingAssembly());
 
                 PatchHelper patcher = new PatchHelper(generationInfo.SourceFolderPath, generationInfo.TargetFolderPath, patchOutputFolder);
 

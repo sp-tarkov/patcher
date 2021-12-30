@@ -57,7 +57,8 @@
       
     </ScrollViewer>
     
-    <ProgressBar Grid.Row="2" Value="{Binding PatchPercent}" Margin="10"/>
+    <ProgressBar Grid.Row="2" Value="{Binding PatchPercent}" Margin="10"
+                 IsIndeterminate="{Binding IndeterminateProgress}"/>
 
     <Grid ColumnDefinitions="AUTO,*,AUTO" Grid.Row="3" Margin="10 0">
       <Label Content="{Binding ProgressMessage}"/>

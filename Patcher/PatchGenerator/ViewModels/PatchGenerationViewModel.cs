@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Media;
+using Avalonia.Threading;
 using PatcherUtils;
 using PatchGenerator.Helpers;
 using PatchGenerator.Models;
@@ -37,6 +38,15 @@ namespace PatchGenerator.ViewModels
             get => _PatchPercent;
             set => this.RaiseAndSetIfChanged(ref _PatchPercent, value);
         }
+
+        private bool _IndeterminateProgress = false;
+        public bool IndeterminateProgress
+        {
+            get => _IndeterminateProgress;
+            set => this.RaiseAndSetIfChanged(ref _IndeterminateProgress, value);
+        }
+
+        private LineItem[] lineItems;
 
         public ObservableCollection<PatchItem> PatchItemCollection { get; set; } = new ObservableCollection<PatchItem>();
         public ObservableCollection<PatchItem> PatchItemLegendCollection { get; set; } = new ObservableCollection<PatchItem>();
@@ -81,6 +91,8 @@ namespace PatchGenerator.ViewModels
 
                 patchGenStopwatch.Stop();
 
+                PrintSummary();
+
                 StringBuilder sb = new StringBuilder()
                 .Append("Patches Generated in ")
                 .Append($"{patchGenStopwatch.Elapsed.Hours} hr/s ")
@@ -93,20 +105,40 @@ namespace PatchGenerator.ViewModels
 
                 if (generationInfo.AutoZip)
                 {
+                    IndeterminateProgress = true;
+
+                    PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
+
+                    System.Threading.Thread.Sleep(2000);
+
+                    PatchItemCollection.Add(new PatchItem("Kicking off 7zip ..."));
+
                     LazyOperations.StartZipProcess(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.zip".FromCwd());
+
+                    IndeterminateProgress = false;
+
+                    PatchItemCollection.Add(new PatchItem("Done"));
                 }
             });
         }
 
         private void Patcher_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
-            ProgressMessage = $"{Progress}/{Total}";
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ProgressMessage = $"{Progress}/{Total}";
 
-            PatchPercent = Percent;
+                PatchPercent = Percent;
 
-            PatchItemCollection.Add(new PatchItem(Message));
+                PatchItemCollection.Add(new PatchItem(Message));
 
-            if(Percent == 100)
+                lineItems = AdditionalLineItems;
+            });
+        }
+
+        private void PrintSummary()
+        {
+            Dispatcher.UIThread?.InvokeAsync(() =>
             {
                 if (Application.Current.Resources.TryGetResource("AKI_Brush_Yellow", out var color))
                 {
@@ -118,7 +150,7 @@ namespace PatchGenerator.ViewModels
                             Color = brush
                         });
 
-                        foreach (LineItem item in AdditionalLineItems)
+                        foreach (LineItem item in lineItems)
                         {
                             PatchItemCollection.Add(new PatchItem("")
                             {
@@ -128,7 +160,7 @@ namespace PatchGenerator.ViewModels
                         }
                     }
                 }
-            }
+            });
         }
     }
 

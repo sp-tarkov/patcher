@@ -105,29 +105,32 @@ namespace PatchClient.ViewModels
 
         private void patcher_ProgressChanged(object Sender, int Progress, int Total, int Percent, string Message = "", params LineItem[] AdditionalLineItems)
         {
-            foreach (LineItem item in AdditionalLineItems)
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
-
-                if (initLineItemProgress)
+                foreach (LineItem item in AdditionalLineItems)
                 {
-                    if (item.ItemValue <= 0) continue;
 
-                    LineItems.Add(new LineItemProgress(item));
+                    if (initLineItemProgress)
+                    {
+                        if (item.ItemValue <= 0) continue;
+
+                        LineItems.Add(new LineItemProgress(item));
+                    }
+
+                    LineItems.FirstOrDefault(x => x.Info == item.ItemText).UpdateProgress(item.ItemValue);
                 }
 
-                LineItems.FirstOrDefault(x => x.Info == item.ItemText).UpdateProgress(item.ItemValue);
-            }
+                initLineItemProgress = false;
 
-            initLineItemProgress = false;
+                PatchPercent = Percent;
 
-            PatchPercent = Percent;
+                if (!string.IsNullOrWhiteSpace(Message))
+                {
+                    PatchMessage = Message;
+                }
 
-            if (!string.IsNullOrWhiteSpace(Message))
-            {
-                PatchMessage = Message;
-            }
-
-            ProgressMessage = $"Patching: {Progress} / {Total} - {Percent}%";
+                ProgressMessage = $"Patching: {Progress} / {Total} - {Percent}%";
+            });
         }
     }
 }

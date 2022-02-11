@@ -112,8 +112,6 @@ namespace PatchClient.ViewModels
 
                     if (initLineItemProgress)
                     {
-                        if (item.ItemValue <= 0) continue;
-
                         LineItems.Add(new LineItemProgress(item));
                     }
 

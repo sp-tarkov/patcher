@@ -23,10 +23,12 @@
     <AvaloniaResource Remove="Assets\Styles.axaml" />
     <None Remove=".gitignore" />
     <None Remove="Resources\7za.exe" />
+    <None Remove="Resources\PatchClient.exe" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\7za.exe" />
+    <EmbeddedResource Include="Resources\PatchClient.exe" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.11" />

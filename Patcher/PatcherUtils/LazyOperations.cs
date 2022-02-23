@@ -47,7 +47,10 @@ namespace PatcherUtils
         {
             FileInfo outputFile = new FileInfo(OutputFilePath);
 
-            if (outputFile.Exists) return;
+            if (outputFile.Exists)
+            {
+                outputFile.Delete();
+            }
 
             if (!outputFile.Directory.Exists)
             {

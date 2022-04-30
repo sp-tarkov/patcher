@@ -24,8 +24,7 @@ namespace PatchGenerator
             return AppBuilder.Configure<App>()
                 .UseReactiveUI()
                 .UsePlatformDetect()
-                .LogToTrace()
-                .UseReactiveUI();
+                .LogToTrace();
         }
     }
 }

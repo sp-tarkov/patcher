@@ -11,10 +11,11 @@
 	
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
      	<Label Content="You can close this window"
-			   FontSize="12" FontWeight="SemiBold"/>
-		<Label Content="{Binding InfoText}"
-			   Classes="yellow"
+			   FontSize="12" FontWeight="SemiBold"
 			   />
+		<TextBlock Text="{Binding InfoText}" TextWrapping="Wrap"
+				   Classes="yellow"
+				   />
 	</StackPanel>
 	
 </UserControl>

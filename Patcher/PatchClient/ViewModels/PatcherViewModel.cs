@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using PatchClient.Models;
 using PatcherUtils;
 using ReactiveUI;
@@ -45,43 +44,15 @@ namespace PatchClient.ViewModels
         {
             this.WhenActivated((CompositeDisposable disposables) =>
             {
-                //Test();
+                if(!Directory.Exists(LazyOperations.PatchFolder))
+                {
+                    NavigateTo(new MessageViewModel(HostScreen, $"{LazyOperations.PatchFolder} folder is missing. Please copy it to\n'{Environment.CurrentDirectory}'\nand try patching again."));
+                    return;
+                }
+
                 RunPatcher();
             });
         }
-
-        /// <summary>
-        /// A dumb testing method to see if things look right. Obsolete is used more like a warning here.
-        /// </summary>
-        [Obsolete]
-        private void Test()
-        {
-            Task.Run(async () =>
-            {
-                LineItem x = new LineItem("test 1", 30);
-                LineItem xx = new LineItem("test 2", 100);
-                LineItem xxx = new LineItem("test 3", 70);
-
-                LineItems.Add(new LineItemProgress(x));
-                LineItems.Add(new LineItemProgress(xx));
-                LineItems.Add(new LineItemProgress(xxx));
-
-                for (int i = 0; i <= 100; i++)
-                {
-                    System.Threading.Thread.Sleep(20);
-                    PatchPercent = i;
-                    ProgressMessage = $"Patching @ {i}%";
-
-                    foreach (var item in LineItems)
-                    {
-                        item.UpdateProgress(item.Total - i);
-                    }
-                }
-
-                await NavigateToWithDelay(new MessageViewModel(HostScreen, "Test Complete"), 400);
-            });
-        }
-
 
         private void RunPatcher()
         {

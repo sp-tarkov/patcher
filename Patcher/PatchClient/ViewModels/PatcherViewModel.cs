@@ -44,6 +44,14 @@ namespace PatchClient.ViewModels
         {
             this.WhenActivated((CompositeDisposable disposables) =>
             {
+                //check if escapefromtarkov.exe is present
+                if(!File.Exists(Path.Join(Directory.GetCurrentDirectory(), "escapefromtarkov.exe")))
+                {
+                    NavigateTo(new MessageViewModel(HostScreen, "EscapeFromTarkov.exe was not found. Please ensure you have copied the patcher to your SPT folder."));
+                    return;
+                }
+
+                //check if patch folder is present
                 if(!Directory.Exists(LazyOperations.PatchFolder))
                 {
                     NavigateTo(new MessageViewModel(HostScreen, $"{LazyOperations.PatchFolder} folder is missing. Please copy it to\n'{Environment.CurrentDirectory}'\nand try patching again."));

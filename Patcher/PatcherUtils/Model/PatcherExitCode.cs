@@ -2,10 +2,11 @@
 {
     public enum PatcherExitCode
     {
-        Success = 0,
-        EftExeNotFound = 10,
-        NoPatchFolder = 11,
-        MissingFile = 12,
-        MissingDir = 13
+        ProgramClosed = 0,
+        Success = 10,
+        EftExeNotFound = 11,
+        NoPatchFolder = 12,
+        MissingFile = 13,
+        MissingDir = 14
     }
 }

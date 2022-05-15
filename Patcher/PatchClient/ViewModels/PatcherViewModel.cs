@@ -14,8 +14,8 @@ namespace PatchClient.ViewModels
 {
     public class PatcherViewModel : ViewModelBase
     {
-        private bool initLineItemProgress = true;
-
+        private bool _initLineItemProgress = true;
+        private bool _autoClose = false;
         public ObservableCollection<LineItemProgress> LineItems { get; set; } = new ObservableCollection<LineItemProgress>();
 
         private string _ProgressMessage = "";
@@ -40,13 +40,21 @@ namespace PatchClient.ViewModels
         }
 
 
-        public PatcherViewModel(IScreen Host) : base(Host)
+        public PatcherViewModel(IScreen Host, bool autoClose) : base(Host)
         {
+            _autoClose = autoClose;
+
             this.WhenActivated((CompositeDisposable disposables) =>
             {
                 //check if escapefromtarkov.exe is present
                 if(!File.Exists(Path.Join(Directory.GetCurrentDirectory(), "escapefromtarkov.exe")))
                 {
+                    if (_autoClose)
+                    {
+                        Environment.Exit((int)PatcherExitCode.EftExeNotFound);
+                        return;
+                    }
+
                     NavigateTo(new MessageViewModel(HostScreen, "EscapeFromTarkov.exe was not found. Please ensure you have copied the patcher to your SPT folder."));
                     return;
                 }
@@ -54,6 +62,12 @@ namespace PatchClient.ViewModels
                 //check if patch folder is present
                 if(!Directory.Exists(LazyOperations.PatchFolder))
                 {
+                    if (_autoClose)
+                    {
+                        Environment.Exit((int)PatcherExitCode.NoPatchFolder);
+                        return;
+                    }
+
                     NavigateTo(new MessageViewModel(HostScreen, $"{LazyOperations.PatchFolder} folder is missing. Please copy it to\n'{Environment.CurrentDirectory}'\nand try patching again."));
                     return;
                 }
@@ -72,13 +86,18 @@ namespace PatchClient.ViewModels
 
                 patcher.ProgressChanged += patcher_ProgressChanged;
 
-                string message = patcher.ApplyPatches();
+                var patchMessage = patcher.ApplyPatches();
 
                 LazyOperations.CleanupTempDir();
 
                 Directory.Delete(LazyOperations.PatchFolder, true);
 
-                await NavigateToWithDelay(new MessageViewModel(HostScreen, message), 400);
+                if(_autoClose)
+                {
+                    Environment.Exit((int)patchMessage.ExitCode);
+                }
+
+                await NavigateToWithDelay(new MessageViewModel(HostScreen, patchMessage.Message), 400);
             });
         }
 
@@ -89,7 +108,7 @@ namespace PatchClient.ViewModels
                 foreach (LineItem item in AdditionalLineItems)
                 {
 
-                    if (initLineItemProgress)
+                    if (_initLineItemProgress)
                     {
                         LineItems.Add(new LineItemProgress(item));
                     }
@@ -97,7 +116,7 @@ namespace PatchClient.ViewModels
                     LineItems.FirstOrDefault(x => x.Info == item.ItemText).UpdateProgress(item.ItemValue);
                 }
 
-                initLineItemProgress = false;
+                _initLineItemProgress = false;
 
                 PatchPercent = Percent;
 

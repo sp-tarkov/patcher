@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PatchClient.Models;
+using PatcherUtils.Model;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -267,7 +269,7 @@ namespace PatcherUtils
         /// Apply a set of patches using the source and delta folders specified during construction.
         /// </summary>
         /// <returns></returns>
-        public string ApplyPatches()
+        public PatchMessage ApplyPatches()
         {
             //get needed directory information
             DirectoryInfo sourceDir = new DirectoryInfo(SourceFolder);
@@ -276,7 +278,7 @@ namespace PatcherUtils
             //check directories exist
             if (!sourceDir.Exists || !deltaDir.Exists)
             {
-                return "One of the supplied directories doesn't exist";
+                return new PatchMessage("One of the supplied directories doesn't exist", PatcherExitCode.MissingDir);
             }
 
             LazyOperations.ExtractResourcesToTempDir();
@@ -312,7 +314,7 @@ namespace PatcherUtils
 
                             if (sourceFile == null)
                             {
-                                return $"Failed to find matching source file for '{deltaFile.FullName}'";
+                                return new PatchMessage($"Failed to find matching source file for '{deltaFile.FullName}'", PatcherExitCode.MissingFile);
                             }
 
                             ApplyDelta(sourceFile.FullName, deltaFile.FullName);
@@ -358,7 +360,7 @@ namespace PatcherUtils
                 RaiseProgressChanged(filesProcessed, fileCountTotal, deltaFile.Name, AdditionalInfo.ToArray());
             }
 
-            return $"Patching Complete. You can delete the patcher.exe file.";
+            return new PatchMessage($"Patching Complete. You can delete the patcher.exe file.", PatcherExitCode.Success);
         }
     }
 }

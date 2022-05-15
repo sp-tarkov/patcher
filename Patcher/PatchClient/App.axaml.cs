@@ -17,9 +17,14 @@ namespace PatchClient
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                bool autoClose = false;
+
+                if(desktop.Args != null && desktop.Args[0].ToLower() == "autoclose")
+                    autoClose = true;
+
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = new MainWindowViewModel(autoClose),
                 };
             }
 

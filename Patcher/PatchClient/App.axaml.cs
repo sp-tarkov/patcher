@@ -19,7 +19,7 @@ namespace PatchClient
             {
                 bool autoClose = false;
 
-                if(desktop.Args != null && desktop.Args[0].ToLower() == "autoclose")
+                if(desktop.Args != null && desktop.Args.Length >= 1 && desktop.Args[0]?.ToLower() == "autoclose")
                     autoClose = true;
 
                 desktop.MainWindow = new MainWindow

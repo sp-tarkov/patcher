@@ -168,7 +168,7 @@ namespace PatcherUtils
         /// </summary>
         /// <returns></returns>
         /// <remarks>Patches are created in the delta folder specified during contruction</remarks>
-        public bool GeneratePatches()
+        public PatchMessage GeneratePatches()
         {
             //get all directory information needed
             DirectoryInfo sourceDir = new DirectoryInfo(SourceFolder);
@@ -179,7 +179,7 @@ namespace PatcherUtils
             if (!sourceDir.Exists || !targetDir.Exists || !deltaDir.Exists)
             {
                 //One of the directories doesn't exist
-                return false;
+                return new PatchMessage("Could not find a directory", PatcherExitCode.MissingDir);
             }
 
             LazyOperations.ExtractResourcesToTempDir();
@@ -244,7 +244,7 @@ namespace PatcherUtils
             //Any remaining source files do not exist in the target folder and can be removed.
             //reset progress info
 
-            if (SourceFiles.Count == 0) return true;
+            if (SourceFiles.Count == 0) return new PatchMessage("Generation Done", PatcherExitCode.Success);
 
             RaiseProgressChanged(0, SourceFiles.Count, "Processing .del files...");
             filesProcessed = 0;
@@ -262,7 +262,7 @@ namespace PatcherUtils
                 RaiseProgressChanged(filesProcessed, fileCountTotal, $"{delFile.FullName.Replace(SourceFolder, "...")}.del", AdditionalInfo.ToArray());
             }
 
-            return true;
+            return new PatchMessage("Generation Done", PatcherExitCode.Success);
         }
 
         /// <summary>

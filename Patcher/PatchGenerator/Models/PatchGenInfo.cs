@@ -62,5 +62,12 @@ namespace PatchGenerator.Models
             get => _ReadyToRun;
             set => this.RaiseAndSetIfChanged(ref _ReadyToRun, value);
         }
+
+        private bool _AutoClose = false;
+        public bool AutoClose
+        {
+            get => _AutoClose;
+            set => this.RaiseAndSetIfChanged(ref _AutoClose, value);
+        }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Threading;
+using PatchClient.Models;
 using PatcherUtils;
 using PatchGenerator.Helpers;
 using PatchGenerator.Models;
 using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -87,7 +89,12 @@ namespace PatchGenerator.ViewModels
 
                 patchGenStopwatch.Start();
 
-                patcher.GeneratePatches();
+                var message = patcher.GeneratePatches();
+
+                if(message.ExitCode != PatcherExitCode.Success && generationInfo.AutoClose)
+                {
+                    Environment.Exit((int)message.ExitCode);
+                }
 
                 patchGenStopwatch.Stop();
 
@@ -118,6 +125,11 @@ namespace PatchGenerator.ViewModels
                     IndeterminateProgress = false;
 
                     PatchItemCollection.Add(new PatchItem("Done"));
+                }
+
+                if (generationInfo.AutoClose)
+                {
+                    Environment.Exit((int)PatcherExitCode.Success);
                 }
             });
         }

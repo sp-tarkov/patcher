@@ -32,6 +32,7 @@ namespace PatchGenerator.ViewModels
                     genInfo.SourceFolderPath = genArgs.SourceFolderPath;
                     genInfo.PatchName = genArgs.OutputFolderName;
                     genInfo.AutoZip = genArgs.AutoZip;
+                    genInfo.AutoClose = genArgs.AutoClose;
 
                     Router.Navigate.Execute(new PatchGenerationViewModel(this, genInfo));
                     return;

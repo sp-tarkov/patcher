@@ -6,13 +6,15 @@
         public string OutputFolderName { get; private set; } = "";
         public string SourceFolderPath { get; private set; } = "";
         public string TargetFolderPath { get; private set; } = "";
+        public bool AutoClose { get; private set; } = false;
         public bool AutoZip { get; private set; } = true;
-        protected GenStartupArgs(string OutputFolderName, string SourceFolderPath, string TargetFolderPath, bool AutoZip)
+        protected GenStartupArgs(string outputFolderName, string sourceFolderPath, string targetFolderPath, bool autoZip, bool autoClose)
         {
-            this.OutputFolderName = OutputFolderName;
-            this.SourceFolderPath = SourceFolderPath;
-            this.TargetFolderPath = TargetFolderPath;
-            this.AutoZip = AutoZip;
+            OutputFolderName = outputFolderName;
+            SourceFolderPath = sourceFolderPath;
+            TargetFolderPath = targetFolderPath;
+            AutoZip = autoZip;
+            AutoClose = autoClose;
         }
 
         public static GenStartupArgs Parse(string[] Args)
@@ -23,6 +25,7 @@
             string sourceFolderPath = "";
             string targetFolderPath = "";
             bool autoZip = true;
+            bool autoClose = false;
 
             foreach (string arg in Args)
             {
@@ -52,10 +55,15 @@
                             autoZip = bool.Parse(argSplit[1]);
                             break;
                         }
+                    case "AutoClose":
+                        {
+                            autoClose = bool.Parse(argSplit[1]);
+                            break;
+                        }
                 }
             }
 
-            return new GenStartupArgs(outputFolderPath, sourceFolderPath, targetFolderPath, autoZip);
+            return new GenStartupArgs(outputFolderPath, sourceFolderPath, targetFolderPath, autoZip, autoClose);
         }
     }
 }

@@ -35,27 +35,27 @@
 
                 switch (argSplit[0].ToLower())
                 {
-                    case "OutputFolderName".ToLower():
+                    case "outputfoldername":
                         {
                             outputFolderPath = argSplit[1];
                             break;
                         }
-                    case "SourceFolderPath".ToLower():
+                    case "sourcefolderpath":
                         {
                             sourceFolderPath = argSplit[1];
                             break;
                         }
-                    case "TargetFolderPath".ToLower():
+                    case "targetfolderpath":
                         {
                             targetFolderPath = argSplit[1];
                             break;
                         }
-                    case "AutoZip".ToLower():
+                    case "autozip":
                         {
                             autoZip = bool.Parse(argSplit[1]);
                             break;
                         }
-                    case "AutoClose".ToLower():
+                    case "autoclose":
                         {
                             autoClose = bool.Parse(argSplit[1]);
                             break;

@@ -33,29 +33,29 @@
 
                 var argSplit = arg.Split("::");
 
-                switch (argSplit[0])
+                switch (argSplit[0].ToLower())
                 {
-                    case "OutputFolderName":
+                    case "OutputFolderName".ToLower():
                         {
                             outputFolderPath = argSplit[1];
                             break;
                         }
-                    case "SourceFolderPath":
+                    case "SourceFolderPath".ToLower():
                         {
                             sourceFolderPath = argSplit[1];
                             break;
                         }
-                    case "TargetFolderPath":
+                    case "TargetFolderPath".ToLower():
                         {
                             targetFolderPath = argSplit[1];
                             break;
                         }
-                    case "AutoZip":
+                    case "AutoZip".ToLower():
                         {
                             autoZip = bool.Parse(argSplit[1]);
                             break;
                         }
-                    case "AutoClose":
+                    case "AutoClose".ToLower():
                         {
                             autoClose = bool.Parse(argSplit[1]);
                             break;

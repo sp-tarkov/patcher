@@ -99,7 +99,7 @@ namespace PatcherUtils
             ProcessStartInfo procInfo = new ProcessStartInfo()
             {
                 FileName = SevenZExePath,
-                Arguments = $"a {DestinationPath} {SourcePath}"
+                Arguments = $"a -mm=LZMA {DestinationPath} {SourcePath}"
             };
 
             Process.Start(procInfo);

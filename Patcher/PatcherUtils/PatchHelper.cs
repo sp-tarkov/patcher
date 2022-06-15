@@ -447,6 +447,7 @@ namespace PatcherUtils
                             try
                             {
                                 File.Copy(deltaFile.FullName, destination, true);
+                                PatchLogger.LogInfo($"File added: {destination}");
                             }
                             catch(Exception ex)
                             {
@@ -467,6 +468,7 @@ namespace PatcherUtils
                             try
                             {
                                 File.Delete(delFilePath);
+                                PatchLogger.LogInfo($"File removed: {delFilePath}");
                             }
                             catch(Exception ex)
                             {

@@ -72,6 +72,9 @@ namespace PatcherUtils
         /// <returns>True if the hashes match</returns>
         private bool CompareFileHashes(string SourceFilePath, string TargetFilePath)
         {
+            var sourceInfo = new FileInfo(SourceFilePath);
+            var targetInfo = new FileInfo(TargetFilePath);
+
             using (MD5 md5Service = MD5.Create())
             using (var sourceStream = File.OpenRead(SourceFilePath))
             using (var targetStream = File.OpenRead(TargetFilePath))
@@ -79,7 +82,11 @@ namespace PatcherUtils
                 byte[] sourceHash = md5Service.ComputeHash(sourceStream);
                 byte[] targetHash = md5Service.ComputeHash(targetStream);
 
-                return Enumerable.SequenceEqual(sourceHash, targetHash);
+                bool matched = Enumerable.SequenceEqual(sourceHash, targetHash);
+
+                PatchLogger.LogInfo($"Hash Check: S({sourceInfo.Name}|{Convert.ToBase64String(sourceHash)}) - T({targetInfo.Name}|{Convert.ToBase64String(targetHash)}) - Match:{matched}");
+
+                return matched;
             }
         }
 
@@ -102,7 +109,21 @@ namespace PatcherUtils
 
             if (File.Exists(decodedPath))
             {
-                File.Move(decodedPath, SourceFilePath, true);
+                PatchLogger.LogInfo($"File delta decoded: {SourceFilePath}");
+
+                try
+                {
+                    File.Move(decodedPath, SourceFilePath, true);
+                    PatchLogger.LogInfo($"Delta applied: {DeltaFilePath}");
+                }
+                catch (Exception ex)
+                {
+                    PatchLogger.LogException(ex);
+                }
+            }
+            else
+            {
+                PatchLogger.LogError($"Failed to decode file delta: {SourceFilePath}");
             }
         }
 
@@ -118,9 +139,14 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFilePath, SourceFolder, "delta");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".delta", ""));
-
-            //TODO - don't hardcode FileName
+            try
+            {
+                Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".delta", ""));
+            }
+            catch(Exception ex)
+            {
+                PatchLogger.LogException(ex);
+            }
 
             Process.Start(new ProcessStartInfo
             {
@@ -129,6 +155,15 @@ namespace PatcherUtils
                 CreateNoWindow = true
             })
             .WaitForExit();
+
+            if (File.Exists(deltaPath))
+            {
+                PatchLogger.LogInfo($"File created [DELTA]: {deltaPath}");
+            }
+            else
+            {
+                PatchLogger.LogError($"File Create failed [DELTA]: {deltaPath}");
+            }
         }
 
         /// <summary>
@@ -142,9 +177,24 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(SourceFile, SourceFolder, "del");
 
-            Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".del", ""));
+            try
+            {
+                Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".del", ""));
+            }
+            catch(Exception ex)
+            {
+                PatchLogger.LogException(ex);
+            }
 
-            File.Create(deltaPath);
+            try
+            {
+                File.Create(deltaPath);
+                PatchLogger.LogInfo($"File Created [DEL]: {deltaPath}");
+            }
+            catch(Exception ex)
+            {
+                PatchLogger.LogException(ex);
+            }
         }
 
         /// <summary>
@@ -158,9 +208,24 @@ namespace PatcherUtils
 
             string deltaPath = GetDeltaPath(TargetFile, TargetFolder, "new");
 
-            Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name + ".new", ""));
+            try
+            {
+                Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name + ".new", ""));
+            }
+            catch(Exception ex)
+            {
+                PatchLogger.LogException(ex);
+            }
 
-            targetSourceInfo.CopyTo(deltaPath, true);
+            try
+            {
+                targetSourceInfo.CopyTo(deltaPath, true);
+                PatchLogger.LogInfo($"File Created [NEW]: {deltaPath}");
+            }
+            catch(Exception ex)
+            {
+                PatchLogger.LogException(ex);
+            }
         }
 
         /// <summary>
@@ -170,16 +235,32 @@ namespace PatcherUtils
         /// <remarks>Patches are created in the delta folder specified during contruction</remarks>
         public PatchMessage GeneratePatches()
         {
+            PatchLogger.LogInfo(" ::: Starting patch generation :::");
             //get all directory information needed
             DirectoryInfo sourceDir = new DirectoryInfo(SourceFolder);
             DirectoryInfo targetDir = new DirectoryInfo(TargetFolder);
             DirectoryInfo deltaDir = Directory.CreateDirectory(DeltaFolder);
 
             //make sure all directories exist
-            if (!sourceDir.Exists || !targetDir.Exists || !deltaDir.Exists)
+            if (!sourceDir.Exists)
             {
-                //One of the directories doesn't exist
-                return new PatchMessage("Could not find a directory", PatcherExitCode.MissingDir);
+                string message = $"Could not find source directory: {sourceDir.FullName}";
+                PatchLogger.LogError(message);
+                return new PatchMessage(message, PatcherExitCode.MissingDir);
+            }
+
+            if (!targetDir.Exists)
+            {
+                string message = $"Could not find target directory: {targetDir.FullName}";
+                PatchLogger.LogError(message);
+                return new PatchMessage(message, PatcherExitCode.MissingDir);
+            }
+
+            if (!deltaDir.Exists)
+            {
+                string message = $"Could not find delta directory: {deltaDir.FullName}";
+                PatchLogger.LogError(message);
+                return new PatchMessage(message, PatcherExitCode.MissingDir);
             }
 
             LazyOperations.ExtractResourcesToTempDir();
@@ -187,6 +268,8 @@ namespace PatcherUtils
             List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
 
             fileCountTotal = SourceFiles.Count;
+
+            PatchLogger.LogInfo($"Total source files: {fileCountTotal}");
 
             AdditionalInfo.Clear();
             AdditionalInfo.Add(new LineItem("Delta Patch", 0));
@@ -206,6 +289,7 @@ namespace PatcherUtils
                 //if the target file doesn't exist in the source files, the target file needs to be added.
                 if (sourceFile == null)
                 {
+                    PatchLogger.LogInfo("::: Creating .new file :::");
                     CreateNewFile(targetFile.FullName);
 
                     newCount++;
@@ -221,16 +305,25 @@ namespace PatcherUtils
                 //if a matching source file was found, check the file hashes and get the delta.
                 if (!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
                 {
+                    PatchLogger.LogInfo("::: Creating .delta file :::");
                     CreateDelta(sourceFile.FullName, targetFile.FullName);
                     extension = ".delta";
                     deltaCount++;
                 }
                 else
                 {
+                    PatchLogger.LogInfo("::: File Exists :::");
                     existCount++;
                 }
 
-                SourceFiles.Remove(sourceFile);
+                try
+                {
+                    SourceFiles.Remove(sourceFile);
+                }
+                catch(Exception ex)
+                {
+                    PatchLogger.LogException(ex);
+                }
 
                 filesProcessed++;
 
@@ -244,7 +337,12 @@ namespace PatcherUtils
             //Any remaining source files do not exist in the target folder and can be removed.
             //reset progress info
 
-            if (SourceFiles.Count == 0) return new PatchMessage("Generation Done", PatcherExitCode.Success);
+            if (SourceFiles.Count == 0)
+            {
+                PatchLogger.LogInfo("::: Patch Generation Complete :::");
+
+                return new PatchMessage("Generation Done", PatcherExitCode.Success);
+            }
 
             RaiseProgressChanged(0, SourceFiles.Count, "Processing .del files...");
             filesProcessed = 0;
@@ -252,6 +350,7 @@ namespace PatcherUtils
 
             foreach (FileInfo delFile in SourceFiles)
             {
+                PatchLogger.LogInfo("::: Creating .del file :::");
                 CreateDelFile(delFile.FullName);
 
                 delCount++;
@@ -262,6 +361,8 @@ namespace PatcherUtils
                 RaiseProgressChanged(filesProcessed, fileCountTotal, $"{delFile.FullName.Replace(SourceFolder, "...")}.del", AdditionalInfo.ToArray());
             }
 
+            PatchLogger.LogInfo("::: Patch Generation Complete :::");
+
             return new PatchMessage("Generation Done", PatcherExitCode.Success);
         }
 
@@ -271,14 +372,25 @@ namespace PatcherUtils
         /// <returns></returns>
         public PatchMessage ApplyPatches()
         {
+            PatchLogger.LogInfo("::: Starting patch application :::");
+
             //get needed directory information
             DirectoryInfo sourceDir = new DirectoryInfo(SourceFolder);
             DirectoryInfo deltaDir = new DirectoryInfo(DeltaFolder);
 
             //check directories exist
-            if (!sourceDir.Exists || !deltaDir.Exists)
+            if (!sourceDir.Exists)
             {
-                return new PatchMessage("One of the supplied directories doesn't exist", PatcherExitCode.MissingDir);
+                string message = $"Could not find source directory: {sourceDir.FullName}";
+                PatchLogger.LogError(message);
+                return new PatchMessage(message, PatcherExitCode.MissingDir);
+            }
+
+            if(!deltaDir.Exists)
+            {
+                string message = $"Could not find delta directory: {deltaDir.FullName}";
+                PatchLogger.LogError(message);
+                return new PatchMessage(message, PatcherExitCode.MissingDir);
             }
 
             LazyOperations.ExtractResourcesToTempDir();
@@ -291,6 +403,7 @@ namespace PatcherUtils
             newCount = deltaFiles.Where(x => x.Extension == ".new").Count();
             delCount = deltaFiles.Where(x => x.Extension == ".del").Count();
 
+            PatchLogger.LogInfo($"Patch File Counts: DELTA({deltaCount}) - NEW({newCount}) - DEL({delCount})");
 
             AdditionalInfo = new List<LineItem>()
             {
@@ -317,6 +430,7 @@ namespace PatcherUtils
                                 return new PatchMessage($"Failed to find matching source file for '{deltaFile.FullName}'", PatcherExitCode.MissingFile);
                             }
 
+                            PatchLogger.LogInfo("::: Applying Delta :::");
                             ApplyDelta(sourceFile.FullName, deltaFile.FullName);
 
                             deltaCount--;
@@ -325,15 +439,19 @@ namespace PatcherUtils
                         }
                     case ".new":
                         {
-                            if (newCount == 2 || newCount == 1 || newCount == 0)
-                            {
-
-                            }
-
                             //copy new file
                             string destination = Path.Join(sourceDir.FullName, deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".new", ""));
 
-                            File.Copy(deltaFile.FullName, destination, true);
+                            PatchLogger.LogInfo("::: Adding New File :::");
+
+                            try
+                            {
+                                File.Copy(deltaFile.FullName, destination, true);
+                            }
+                            catch(Exception ex)
+                            {
+                                PatchLogger.LogException(ex);
+                            }
 
                             newCount--;
 
@@ -344,7 +462,16 @@ namespace PatcherUtils
                             //remove unneeded file
                             string delFilePath = Path.Join(sourceDir.FullName, deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".del", ""));
 
-                            File.Delete(delFilePath);
+                            PatchLogger.LogInfo("::: Removing Uneeded File :::");
+
+                            try
+                            {
+                                File.Delete(delFilePath);
+                            }
+                            catch(Exception ex)
+                            {
+                                PatchLogger.LogException(ex);
+                            }
 
                             delCount--;
 
@@ -360,6 +487,7 @@ namespace PatcherUtils
                 RaiseProgressChanged(filesProcessed, fileCountTotal, deltaFile.Name, AdditionalInfo.ToArray());
             }
 
+            PatchLogger.LogInfo("::: Patching Complete :::");
             return new PatchMessage($"Patching Complete. You can delete the patcher.exe file.", PatcherExitCode.Success);
         }
     }

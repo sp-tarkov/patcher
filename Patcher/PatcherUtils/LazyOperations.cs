@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using PatcherUtils.Model;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -49,11 +50,13 @@ namespace PatcherUtils
 
             if (outputFile.Exists)
             {
+                PatchLogger.LogInfo($"Deleting Existing Resource: {outputFile.Name}");
                 outputFile.Delete();
             }
 
             if (!outputFile.Directory.Exists)
             {
+                PatchLogger.LogInfo($"Creating Resource Directory: {outputFile.Directory.Name}");
                 Directory.CreateDirectory(outputFile.Directory.FullName);
             }
 
@@ -61,6 +64,7 @@ namespace PatcherUtils
             using (Stream s = assembly.GetManifestResourceStream(ResourceName))
             {
                 s.CopyTo(fs);
+                PatchLogger.LogInfo($"Resourced streamed out of assembly: {outputFile.Name}");
             }
         }
 
@@ -103,6 +107,8 @@ namespace PatcherUtils
             };
 
             Process.Start(procInfo);
+
+            PatchLogger.LogInfo($"Zip process started");
         }
 
         /// <summary>
@@ -115,6 +121,7 @@ namespace PatcherUtils
             if (dir.Exists)
             {
                 dir.Delete(true);
+                PatchLogger.LogInfo("Temp directory delted");
             }
         }
     }

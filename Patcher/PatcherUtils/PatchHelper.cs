@@ -374,6 +374,8 @@ namespace PatcherUtils
         {
             PatchLogger.LogInfo("::: Starting patch application :::");
 
+            PatchLogger.LogOSInfo();
+
             //get needed directory information
             DirectoryInfo sourceDir = new DirectoryInfo(SourceFolder);
             DirectoryInfo deltaDir = new DirectoryInfo(DeltaFolder);

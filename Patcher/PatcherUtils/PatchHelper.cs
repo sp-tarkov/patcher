@@ -448,6 +448,7 @@ namespace PatcherUtils
 
                             try
                             {
+                                Directory.CreateDirectory(Path.GetDirectoryName(destination));
                                 File.Copy(deltaFile.FullName, destination, true);
                                 PatchLogger.LogInfo($"File added: {destination}");
                             }

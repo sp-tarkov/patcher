@@ -7,6 +7,7 @@
         EftExeNotFound = 11,
         NoPatchFolder = 12,
         MissingFile = 13,
-        MissingDir = 14
+        MissingDir = 14,
+        PatchFailed = 15
     }
 }

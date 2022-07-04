@@ -95,7 +95,7 @@ namespace PatcherUtils
         /// </summary>
         /// <param name="SourceFilePath"></param>
         /// <param name="DeltaFilePath"></param>
-        private void ApplyDelta(string SourceFilePath, string DeltaFilePath)
+        private (bool, string) ApplyDelta(string SourceFilePath, string DeltaFilePath)
         {
             string decodedPath = SourceFilePath + ".decoded";
 
@@ -115,15 +115,19 @@ namespace PatcherUtils
                 {
                     File.Move(decodedPath, SourceFilePath, true);
                     PatchLogger.LogInfo($"Delta applied: {DeltaFilePath}");
+                    return (true, "");
                 }
                 catch (Exception ex)
                 {
                     PatchLogger.LogException(ex);
+                    return (false, ex.Message);
                 }
             }
             else
             {
-                PatchLogger.LogError($"Failed to decode file delta: {SourceFilePath}");
+                string error = $"Failed to decode file delta: {SourceFilePath}";
+                PatchLogger.LogError(error);
+                return (false, error);
             }
         }
 
@@ -433,7 +437,12 @@ namespace PatcherUtils
                             }
 
                             PatchLogger.LogInfo("::: Applying Delta :::");
-                            ApplyDelta(sourceFile.FullName, deltaFile.FullName);
+                            var result = ApplyDelta(sourceFile.FullName, deltaFile.FullName);
+
+                            if(!result.Item1)
+                            {
+                                return new PatchMessage(result.Item2, PatcherExitCode.PatchFailed);
+                            }
 
                             deltaCount--;
 
@@ -455,6 +464,7 @@ namespace PatcherUtils
                             catch(Exception ex)
                             {
                                 PatchLogger.LogException(ex);
+                                return new PatchMessage(ex.Message, PatcherExitCode.PatchFailed);
                             }
 
                             newCount--;
@@ -476,6 +486,7 @@ namespace PatcherUtils
                             catch(Exception ex)
                             {
                                 PatchLogger.LogException(ex);
+                                return new PatchMessage(ex.Message, PatcherExitCode.PatchFailed);
                             }
 
                             delCount--;

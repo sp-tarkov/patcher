@@ -15,6 +15,7 @@ using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace PatchGenerator.ViewModels
 {
@@ -48,17 +49,28 @@ namespace PatchGenerator.ViewModels
             set => this.RaiseAndSetIfChanged(ref _IndeterminateProgress, value);
         }
 
+        private string _ElapsedTimeDetails;
+        public string ElapsedTimeDetails
+        {
+            get => _ElapsedTimeDetails;
+            set => this.RaiseAndSetIfChanged(ref _ElapsedTimeDetails, value);
+        }
+
         private LineItem[] lineItems;
 
         public ObservableCollection<PatchItem> PatchItemCollection { get; set; } = new ObservableCollection<PatchItem>();
         public ObservableCollection<PatchItem> PatchItemLegendCollection { get; set; } = new ObservableCollection<PatchItem>();
 
         private Stopwatch patchGenStopwatch = new Stopwatch();
+        private Timer updateElapsedTimeTimer = new Timer(1000);
 
         private readonly PatchGenInfo generationInfo;
         public PatchGenerationViewModel(IScreen Host, PatchGenInfo GenerationInfo) : base(Host)
         {
             generationInfo = GenerationInfo;
+            ElapsedTimeDetails = "Starting ...";
+
+            updateElapsedTimeTimer.Elapsed += UpdateElapsedTimeTimer_Elapsed;
 
             foreach (KeyValuePair<string, IBrush> pair in PatchItemDefinitions.Colors)
             {
@@ -75,6 +87,14 @@ namespace PatchGenerator.ViewModels
             });
         }
 
+        private void UpdateElapsedTimeTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ElapsedTimeDetails = $"Elapsed Patch Time: {patchGenStopwatch.Elapsed.ToString("hh':'mm':'ss")}";
+            });
+        }
+
         public void GeneratePatches()
         {
             Task.Run(() =>
@@ -87,6 +107,7 @@ namespace PatchGenerator.ViewModels
 
                 patcher.ProgressChanged += Patcher_ProgressChanged;
 
+                updateElapsedTimeTimer.Start();
                 patchGenStopwatch.Start();
 
                 var message = patcher.GeneratePatches();
@@ -97,6 +118,7 @@ namespace PatchGenerator.ViewModels
                 }
 
                 patchGenStopwatch.Stop();
+                updateElapsedTimeTimer.Stop();
 
                 PrintSummary();
 

@@ -4,8 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>2.9.3</AssemblyVersion>
-    <FileVersion>2.9.3</FileVersion>
+    <AssemblyVersion>2.9.4</AssemblyVersion>
+    <FileVersion>2.9.4</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

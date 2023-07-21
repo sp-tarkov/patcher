@@ -4,11 +4,13 @@ using PatcherUtils;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace PatchClient.ViewModels
 {
@@ -16,6 +18,9 @@ namespace PatchClient.ViewModels
     {
         private bool _initLineItemProgress = true;
         private bool _autoClose = false;
+        private Stopwatch _patchStopwatch;
+        private Timer _udpatePatchElapsedTimer = new Timer(1000);
+
         public ObservableCollection<LineItemProgress> LineItems { get; set; } = new ObservableCollection<LineItemProgress>();
 
         private string _ProgressMessage = "";
@@ -39,10 +44,19 @@ namespace PatchClient.ViewModels
             set => this.RaiseAndSetIfChanged(ref _PatchMessage, value);
         }
 
+        private string _ElapsedPatchTimeDetails;
+        public string ElapsedPatchTimeDetails
+        {
+            get => _ElapsedPatchTimeDetails;
+            set => this.RaiseAndSetIfChanged(ref _ElapsedPatchTimeDetails, value);
+        }
+
 
         public PatcherViewModel(IScreen Host, bool autoClose) : base(Host)
         {
             _autoClose = autoClose;
+            ElapsedPatchTimeDetails = "Starting ...";
+            _udpatePatchElapsedTimer.Elapsed += _udpatePatchElapsedTimer_Elapsed;
 
             this.WhenActivated((CompositeDisposable disposables) =>
             {
@@ -76,6 +90,14 @@ namespace PatchClient.ViewModels
             });
         }
 
+        private void _udpatePatchElapsedTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ElapsedPatchTimeDetails = $"Elapsed Patch Time: {_patchStopwatch.Elapsed.ToString("hh':'mm':'ss")}";
+            });
+        }
+
         private void RunPatcher()
         {
             Task.Run(async() =>
@@ -86,7 +108,13 @@ namespace PatchClient.ViewModels
 
                 patcher.ProgressChanged += patcher_ProgressChanged;
 
+                _udpatePatchElapsedTimer.Start();
+                _patchStopwatch = Stopwatch.StartNew();
+
                 var patchMessage = patcher.ApplyPatches();
+
+                _patchStopwatch.Stop();
+                _udpatePatchElapsedTimer.Stop();
 
                 LazyOperations.CleanupTempDir();
 

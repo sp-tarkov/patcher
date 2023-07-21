@@ -64,6 +64,9 @@
       <Label Content="{Binding ProgressMessage}"/>
       <Label Content="{Binding PatchPercent, StringFormat={}{0}%}" Grid.Column="2"/>
     </Grid>
+	  
+	<Label Content="{Binding ElapsedTimeDetails}" Grid.Row="4" HorizontalAlignment="Left" Margin="10"
+		   />
     
     <CheckBox Content="AutoScroll" Grid.Row="4" HorizontalAlignment="Right" Margin="10"
               IsChecked="{Binding AutoScroll}"/>

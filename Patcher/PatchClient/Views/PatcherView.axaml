@@ -20,6 +20,7 @@
 
 		<!-- Current Patch Text -->
 		<Label Content="{Binding ProgressMessage}"/>
+		<Label Content="{Binding ElapsedPatchTimeDetails}" HorizontalAlignment="Right"/>
 		<Label Content="{Binding PatchMessage}" Grid.Row="1"
 			   Classes="dark"/>
 		<ProgressBar Grid.Row="2" Value="{Binding PatchPercent}"/>

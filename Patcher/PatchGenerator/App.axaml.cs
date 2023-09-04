@@ -4,6 +4,10 @@ using Avalonia.Markup.Xaml;
 using PatchGenerator.Models;
 using PatchGenerator.ViewModels;
 using PatchGenerator.Views;
+using ReactiveUI;
+using System.Reactive;
+using System;
+using PatcherUtils.Model;
 
 namespace PatchGenerator
 {
@@ -12,6 +16,12 @@ namespace PatchGenerator
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            RxApp.DefaultExceptionHandler = Observer.Create<Exception>((exception) =>
+            {
+                PatchLogger.LogException(exception);
+            });
+
         }
 
         public override void OnFrameworkInitializationCompleted()

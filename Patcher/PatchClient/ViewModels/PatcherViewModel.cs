@@ -18,6 +18,7 @@ namespace PatchClient.ViewModels
     {
         private bool _initLineItemProgress = true;
         private bool _autoClose = false;
+        private bool _debugOutput = false;
         private Stopwatch _patchStopwatch;
         private Timer _udpatePatchElapsedTimer = new Timer(1000);
 
@@ -52,9 +53,10 @@ namespace PatchClient.ViewModels
         }
 
 
-        public PatcherViewModel(IScreen Host, bool autoClose) : base(Host)
+        public PatcherViewModel(IScreen Host, bool autoClose, bool debugOutput) : base(Host)
         {
             _autoClose = autoClose;
+            _debugOutput = debugOutput;
             ElapsedPatchTimeDetails = "Starting ...";
             _udpatePatchElapsedTimer.Elapsed += _udpatePatchElapsedTimer_Elapsed;
 
@@ -104,7 +106,7 @@ namespace PatchClient.ViewModels
             {
                 LazyOperations.ExtractResourcesToTempDir(Assembly.GetExecutingAssembly());
 
-                PatchHelper patcher = new PatchHelper(Environment.CurrentDirectory, null, LazyOperations.PatchFolder);
+                PatchHelper patcher = new PatchHelper(Environment.CurrentDirectory, null, LazyOperations.PatchFolder, _debugOutput);
 
                 patcher.ProgressChanged += patcher_ProgressChanged;
 

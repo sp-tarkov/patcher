@@ -18,11 +18,11 @@ namespace PatchClient.ViewModels
             }
         });
 
-        public MainWindowViewModel(bool autoClose)
+        public MainWindowViewModel(bool autoClose, bool debugOutput)
         {
             this.WhenActivated((CompositeDisposable disposable) =>
             {
-                Router.Navigate.Execute(new PatcherViewModel(this, autoClose));
+                Router.Navigate.Execute(new PatcherViewModel(this, autoClose, debugOutput));
             });
         }
     }

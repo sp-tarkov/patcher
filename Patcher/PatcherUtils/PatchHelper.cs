@@ -23,6 +23,8 @@ namespace PatcherUtils
         private int delCount;
         private int existCount;
 
+        private bool debugOutput;
+
         private List<LineItem> AdditionalInfo = new List<LineItem>();
 
         /// <summary>
@@ -45,11 +47,12 @@ namespace PatcherUtils
         /// <param name="TargetFolder">The directory to compare against during patch creation.</param>
         /// <param name="DeltaFolder">The directory where the patches are/will be located.</param>
         /// <remarks><paramref name="TargetFolder"/> can be null if you only plan to apply patches.</remarks>
-        public PatchHelper(string SourceFolder, string TargetFolder, string DeltaFolder)
+        public PatchHelper(string SourceFolder, string TargetFolder, string DeltaFolder, bool debugOutput = false)
         {
             this.SourceFolder = SourceFolder;
             this.TargetFolder = TargetFolder;
             this.DeltaFolder = DeltaFolder;
+            this.debugOutput = debugOutput;
         }
 
         /// <summary>
@@ -99,13 +102,74 @@ namespace PatcherUtils
         {
             string decodedPath = SourceFilePath + ".decoded";
 
-            Process.Start(new ProcessStartInfo
+            var xdeltaArgs = $"-d {(debugOutput ? "-v -v" : "")} -f -s";
+
+            if (debugOutput)
+            {
+                try
+                {
+                    var stream = File.Open(SourceFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    stream.Close();
+                    stream.Dispose();
+                    PatchLogger.LogDebug($"File is openable: {SourceFilePath}");
+                }
+                catch (Exception ex)
+                {
+                    PatchLogger.LogException(ex);
+                }
+
+                try
+                {
+                    var stream = File.Open(SourceFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    stream.Close();
+                    stream.Dispose();
+                    PatchLogger.LogDebug($"File is openable: {DeltaFilePath}");
+                }
+                catch (Exception ex)
+                {
+                    PatchLogger.LogException(ex);
+                }
+            }
+
+            var proc = Process.Start(new ProcessStartInfo
             {
                 FileName = LazyOperations.XDelta3Path,
-                Arguments = $"-d -f -s \"{SourceFilePath}\" \"{DeltaFilePath}\" \"{decodedPath}\"",
+                Arguments = $"{xdeltaArgs} \"{SourceFilePath}\" \"{DeltaFilePath}\" \"{decodedPath}\"",
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
                 CreateNoWindow = true
-            })
-            .WaitForExit();
+            });
+
+            if (proc == null)
+            {
+                PatchLogger.LogError($"xdelta3 process failed to start: {nameof(proc)} is null");
+                return (false, "xdelta3 process failed to start");
+            }
+            
+            proc.WaitForExit();
+
+            if (debugOutput)
+            {
+                try
+                {
+                    PatchLogger.LogDebug($"xdelta exit code :: {proc.ExitCode}");
+                    PatchLogger.LogDebug("___Dumping xdelta stdout___");
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        PatchLogger.LogDebug(proc.StandardOutput.ReadLine());
+                    }
+
+                    PatchLogger.LogDebug("___Dumping xdelta stderr___");
+                    while (!proc.StandardError.EndOfStream)
+                    {
+                        PatchLogger.LogDebug(proc.StandardError.ReadLine());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    PatchLogger.LogException(ex);
+                }
+            }
 
             if (File.Exists(decodedPath))
             {

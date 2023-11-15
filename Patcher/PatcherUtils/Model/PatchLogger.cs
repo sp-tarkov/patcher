@@ -42,6 +42,7 @@ namespace PatcherUtils.Model
             LogToFile($"{GetTimestamp()}[OS]: {RuntimeInformation.OSDescription}");
         }
 
+        public static void LogDebug(string message) => LogToFile($"{GetTimestamp()}[DEBUG]: {message}");
         public static void LogInfo(string message) => LogToFile($"{GetTimestamp()}[INFO]: {message}");
         public static void LogError(string message) => LogToFile($"{GetTimestamp()}[ERROR]: {message}");
         public static void LogException(Exception ex) => LogToFile($"{GetTimestamp()}[EXCEPTION]: {ex.Message}\n\nStackTrace:\n{ex.StackTrace}");

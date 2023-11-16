@@ -29,24 +29,34 @@ public class XdeltaProcessHelper
     
     private bool RunNormal()
     {
-        using var proc = new Process();
-
-        proc.StartInfo = new ProcessStartInfo
+        try
         {
-            FileName = LazyOperations.XDelta3Path,
-            Arguments = $"{_args} \"{_sourcePath}\" \"{_deltaPath}\" \"{_decodedPath}\"",
-            CreateNoWindow = true
-        };
+            using var proc = new Process();
 
-        if (proc.WaitForExit(_timeout))
-        {
-            PatchLogger.LogError("xdelta3 process timed out");
+            proc.StartInfo = new ProcessStartInfo
+            {
+                FileName = LazyOperations.XDelta3Path,
+                Arguments = $"{_args} \"{_sourcePath}\" \"{_deltaPath}\" \"{_decodedPath}\"",
+                CreateNoWindow = true
+            };
+
+            proc.Start();
+
+            if (!proc.WaitForExit(_timeout))
+            {
+                PatchLogger.LogError("xdelta3 process timed out");
+                PatchLogger.LogDebug($"xdelta exit code: {proc.ExitCode}");
+                return false;
+            }
+
             PatchLogger.LogDebug($"xdelta exit code: {proc.ExitCode}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            PatchLogger.LogException(ex);
             return false;
         }
-
-        PatchLogger.LogDebug($"xdelta exit code: {proc.ExitCode}");
-        return true;
     }
 
     private bool DebugPathsCheck()

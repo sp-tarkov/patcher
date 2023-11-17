@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using PatcherUtils.Helpers;
 
 namespace PatcherUtils
 {
@@ -104,71 +105,12 @@ namespace PatcherUtils
 
             var xdeltaArgs = $"-d {(debugOutput ? "-v -v" : "")} -f -s";
 
-            if (debugOutput)
+            var xdeltaHelper =
+                new XdeltaProcessHelper(xdeltaArgs, SourceFilePath, DeltaFilePath, decodedPath, debugOutput);
+
+            if (!xdeltaHelper.Run())
             {
-                try
-                {
-                    var stream = File.Open(SourceFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                    stream.Close();
-                    stream.Dispose();
-                    PatchLogger.LogDebug($"File is openable: {SourceFilePath}");
-                }
-                catch (Exception ex)
-                {
-                    PatchLogger.LogException(ex);
-                }
-
-                try
-                {
-                    var stream = File.Open(SourceFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                    stream.Close();
-                    stream.Dispose();
-                    PatchLogger.LogDebug($"File is openable: {DeltaFilePath}");
-                }
-                catch (Exception ex)
-                {
-                    PatchLogger.LogException(ex);
-                }
-            }
-
-            var proc = Process.Start(new ProcessStartInfo
-            {
-                FileName = LazyOperations.XDelta3Path,
-                Arguments = $"{xdeltaArgs} \"{SourceFilePath}\" \"{DeltaFilePath}\" \"{decodedPath}\"",
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true
-            });
-
-            if (proc == null)
-            {
-                PatchLogger.LogError($"xdelta3 process failed to start: {nameof(proc)} is null");
-                return (false, "xdelta3 process failed to start");
-            }
-            
-            proc.WaitForExit();
-
-            if (debugOutput)
-            {
-                try
-                {
-                    PatchLogger.LogDebug($"xdelta exit code :: {proc.ExitCode}");
-                    PatchLogger.LogDebug("___Dumping xdelta stdout___");
-                    while (!proc.StandardOutput.EndOfStream)
-                    {
-                        PatchLogger.LogDebug(proc.StandardOutput.ReadLine());
-                    }
-
-                    PatchLogger.LogDebug("___Dumping xdelta stderr___");
-                    while (!proc.StandardError.EndOfStream)
-                    {
-                        PatchLogger.LogDebug(proc.StandardError.ReadLine());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    PatchLogger.LogException(ex);
-                }
+                return (false, "something went wrong during the xdelta3 process");
             }
 
             if (File.Exists(decodedPath))

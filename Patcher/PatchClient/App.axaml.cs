@@ -7,6 +7,7 @@ using ReactiveUI;
 using System.Reactive;
 using System;
 using System.Linq;
+using System.Reflection;
 using PatcherUtils.Model;
 
 namespace PatchClient
@@ -45,6 +46,10 @@ namespace PatchClient
                 {
                     PatchLogger.LogInfo("Running with autoclose");
                 }
+
+                var version = Assembly.GetExecutingAssembly().GetName().Version;
+                
+                PatchLogger.LogInfo($"Patch Client v{version?.ToString() ?? "N/A"}");
 
                 desktop.MainWindow = new MainWindow
                 {

@@ -7,6 +7,7 @@ using PatchGenerator.Views;
 using ReactiveUI;
 using System.Reactive;
 using System;
+using System.Reflection;
 using PatcherUtils.Model;
 
 namespace PatchGenerator
@@ -26,6 +27,10 @@ namespace PatchGenerator
 
         public override void OnFrameworkInitializationCompleted()
         {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+                
+            PatchLogger.LogInfo($"Patch Generator v{version?.ToString() ?? "N/A"}");
+            
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Startup += Desktop_Startup;

@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using PatcherUtils.Model;
 
 namespace PatchGenerator.ViewModels
 {
@@ -140,11 +141,18 @@ namespace PatchGenerator.ViewModels
 
                     System.Threading.Thread.Sleep(2000);
 
-                    PatchItemCollection.Add(new PatchItem("Kicking off 7zip ..."));
+                    PatchItemCollection.Add(new PatchItem("Zipping patcher ..."));
 
-                    LazyOperations.StartZipProcess(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.zip".FromCwd());
-
+                    ProgressMessage = "Zipping patcher";
+                    
                     IndeterminateProgress = false;
+
+                    var progress = new Progress<int>(p =>
+                    {
+                        PatchPercent = p;
+                    });
+
+                    LazyOperations.CompressDirectory(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.7z".FromCwd(), progress);
 
                     PatchItemCollection.Add(new PatchItem("Done"));
                 }

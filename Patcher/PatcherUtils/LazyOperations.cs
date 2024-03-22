@@ -1,7 +1,9 @@
-﻿using PatcherUtils.Model;
-using System.Diagnostics;
+﻿using System;
+using PatcherUtils.Model;
 using System.IO;
 using System.Reflection;
+using Aki.Common.Utils;
+using SevenZip;
 
 namespace PatcherUtils
 {
@@ -18,12 +20,12 @@ namespace PatcherUtils
         /// </summary>
         public static string PatchFolder = "Aki_Patches";
 
-        private static string SevenZExe = "7za.exe";
+        private static string SevenZDll = "7z.dll";
 
         /// <summary>
         /// The path to the 7za.exe file in the <see cref="TempDir"/>
         /// </summary>
-        public static string SevenZExePath = $"{TempDir}\\{SevenZExe}";
+        public static string SevenZDllPath = $"{TempDir}\\{SevenZDll}";
 
         private static string PatcherClient = "PatchClient.exe";
         /// <summary>
@@ -79,9 +81,9 @@ namespace PatcherUtils
             {
                 switch (resource)
                 {
-                    case string a when a.EndsWith(SevenZExe):
+                    case string a when a.EndsWith(SevenZDll):
                         {
-                            StreamResourceOut(assembly, resource, SevenZExePath);
+                            StreamResourceOut(assembly, resource, SevenZDllPath);
                             break;
                         }
                     case string a when a.EndsWith(PatcherClient):
@@ -98,17 +100,34 @@ namespace PatcherUtils
             }
         }
 
-        public static void StartZipProcess(string SourcePath, string DestinationPath)
+        public static void CompressDirectory(string SourceDirectoryPath, string DestinationFilePath, IProgress<int> progress)
         {
-            ProcessStartInfo procInfo = new ProcessStartInfo()
+            var outputFile = new FileInfo(DestinationFilePath);
+            
+            SevenZipBase.SetLibraryPath(SevenZDllPath);
+            var compressor = new SevenZipCompressor()
             {
-                FileName = SevenZExePath,
-                Arguments = $"a -mm=LZMA {DestinationPath} {SourcePath}"
+                ArchiveFormat = OutArchiveFormat.SevenZip,
+                CompressionMethod = CompressionMethod.Lzma2,
+                CompressionLevel = CompressionLevel.Normal
             };
 
-            Process.Start(procInfo);
+            compressor.Compressing += (_, args) =>
+            {
+                progress.Report(args.PercentDone);
+            };
 
-            PatchLogger.LogInfo($"Zip process started");
+            using var outputStream = outputFile.OpenWrite();
+            
+            compressor.CompressDirectory(SourceDirectoryPath, outputStream);
+            
+            outputFile.Refresh();
+
+            // failed to compress data
+            if (!outputFile.Exists || outputFile.Length == 0)
+            {
+                Logger.LogError("Failed to compress patcher");
+            }
         }
 
         /// <summary>

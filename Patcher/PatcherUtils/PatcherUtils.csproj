@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyVersion>2.11.0</AssemblyVersion>
+    <FileVersion>2.11.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\7z.dll" />
     <EmbeddedResource Include="Resources\xdelta3.exe" />
   </ItemGroup>
 
@@ -16,6 +19,10 @@
     <Reference Include="Aki.Common">
       <HintPath>..\PatchGenerator\References\Aki.Common.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.6.1.23" />
   </ItemGroup>
 
 </Project>

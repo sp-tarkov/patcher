@@ -5,6 +5,7 @@
       <map>
         <entry key="PatchClient/Views/MainWindow.axaml" value="PatchClient/PatchClient.csproj" />
         <entry key="PatchGenerator/Views/MainWindow.axaml" value="PatchGenerator/PatchGenerator.csproj" />
+        <entry key="PatchGenerator/Views/OptionsView.axaml" value="PatchGenerator/PatchGenerator.csproj" />
       </map>
     </option>
   </component>

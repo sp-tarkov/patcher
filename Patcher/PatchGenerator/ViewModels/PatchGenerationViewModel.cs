@@ -112,15 +112,17 @@ namespace PatchGenerator.ViewModels
                 patchGenStopwatch.Start();
 
                 var message = patcher.GeneratePatches();
-
-                if(message.ExitCode != PatcherExitCode.Success && generationInfo.AutoClose)
-                {
-                    Environment.Exit((int)message.ExitCode);
-                }
-
+                
                 patchGenStopwatch.Stop();
                 updateElapsedTimeTimer.Stop();
 
+                if(message.ExitCode != PatcherExitCode.Success && generationInfo.AutoClose)
+                {
+                    PatchLogger.LogInfo("Exiting: Auto close on failure");
+                    Environment.Exit((int)message.ExitCode);
+                }
+
+                PatchLogger.LogInfo("Printing summary info ...");
                 PrintSummary();
 
                 StringBuilder sb = new StringBuilder()
@@ -132,9 +134,12 @@ namespace PatchGenerator.ViewModels
                 ProgressMessage = sb.ToString();
 
                 File.Copy(LazyOperations.PatcherClientPath, $"{generationInfo.PatchName.FromCwd()}\\patcher.exe", true);
-
+                
+                PatchLogger.LogInfo("Copied patcher.exe to output folder");
+                
                 if (generationInfo.AutoZip)
                 {
+                    PatchLogger.LogInfo("AutoZipping");
                     IndeterminateProgress = true;
 
                     PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
@@ -149,6 +154,7 @@ namespace PatchGenerator.ViewModels
 
                     var progress = new Progress<int>(p =>
                     {
+                        PatchLogger.LogInfo($"compressing directory @ {p}%");
                         PatchPercent = p;
                     });
 

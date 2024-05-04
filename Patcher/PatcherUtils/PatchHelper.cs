@@ -1,11 +1,14 @@
 ﻿using PatchClient.Models;
 using PatcherUtils.Model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using PatcherUtils.Helpers;
 
 namespace PatcherUtils
@@ -34,7 +37,8 @@ namespace PatcherUtils
         /// <remarks>Includes an array of <see cref="LineItem"/> with details for each type of patch</remarks>
         public event ProgressChangedHandler ProgressChanged;
 
-        protected virtual void RaiseProgressChanged(int progress, int total, string Message = "", params LineItem[] AdditionalLineItems)
+        protected virtual void RaiseProgressChanged(int progress, int total, string Message = "",
+            params LineItem[] AdditionalLineItems)
         {
             int percent = (int)Math.Floor((double)progress / total * 100);
 
@@ -88,7 +92,8 @@ namespace PatcherUtils
 
                 bool matched = Enumerable.SequenceEqual(sourceHash, targetHash);
 
-                PatchLogger.LogInfo($"Hash Check: S({sourceInfo.Name}|{Convert.ToBase64String(sourceHash)}) - T({targetInfo.Name}|{Convert.ToBase64String(targetHash)}) - Match:{matched}");
+                PatchLogger.LogInfo(
+                    $"Hash Check: S({sourceInfo.Name}|{Convert.ToBase64String(sourceHash)}) - T({targetInfo.Name}|{Convert.ToBase64String(targetHash)}) - Match:{matched}");
 
                 return matched;
             }
@@ -153,18 +158,18 @@ namespace PatcherUtils
             {
                 Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".delta", ""));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 PatchLogger.LogException(ex);
             }
 
             Process.Start(new ProcessStartInfo
-            {
-                FileName = LazyOperations.XDelta3Path,
-                Arguments = $"-0 -e -f -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
-                CreateNoWindow = true
-            })
-            .WaitForExit();
+                {
+                    FileName = LazyOperations.XDelta3Path,
+                    Arguments = $"-0 -e -f -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
+                    CreateNoWindow = true
+                })
+                .WaitForExit();
 
             if (File.Exists(deltaPath))
             {
@@ -191,7 +196,7 @@ namespace PatcherUtils
             {
                 Directory.CreateDirectory(deltaPath.Replace(sourceFileInfo.Name + ".del", ""));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 PatchLogger.LogException(ex);
             }
@@ -201,7 +206,7 @@ namespace PatcherUtils
                 File.Create(deltaPath);
                 PatchLogger.LogInfo($"File Created [DEL]: {deltaPath}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 PatchLogger.LogException(ex);
             }
@@ -222,7 +227,7 @@ namespace PatcherUtils
             {
                 Directory.CreateDirectory(deltaPath.Replace(targetSourceInfo.Name + ".new", ""));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 PatchLogger.LogException(ex);
             }
@@ -232,7 +237,7 @@ namespace PatcherUtils
                 targetSourceInfo.CopyTo(deltaPath, true);
                 PatchLogger.LogInfo($"File Created [NEW]: {deltaPath}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 PatchLogger.LogException(ex);
             }
@@ -275,9 +280,11 @@ namespace PatcherUtils
 
             LazyOperations.ExtractResourcesToTempDir();
 
-            List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
+            List<FileInfo> sourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
+            var targetFiles = targetDir.GetFiles("*", SearchOption.AllDirectories).ToList();
+            ConcurrentQueue<FileInfo> foundFilesQueue = new ConcurrentQueue<FileInfo>();
 
-            fileCountTotal = SourceFiles.Count;
+            fileCountTotal = targetFiles.Count;
 
             PatchLogger.LogInfo($"Total source files: {fileCountTotal}");
 
@@ -291,74 +298,92 @@ namespace PatcherUtils
 
             RaiseProgressChanged(0, fileCountTotal, "Generating deltas...");
 
-            foreach (FileInfo targetFile in targetDir.GetFiles("*", SearchOption.AllDirectories))
-            {
-                //find a matching source file based on the relative path of the file
-                FileInfo sourceFile = SourceFiles.Find(f => f.FullName.Replace(sourceDir.FullName, "") == targetFile.FullName.Replace(targetDir.FullName, ""));
-
-                //if the target file doesn't exist in the source files, the target file needs to be added.
-                if (sourceFile == null)
+            Parallel.ForEach(targetFiles,
+                new ParallelOptions() { MaxDegreeOfParallelism = 5 }, targetFile =>
                 {
-                    PatchLogger.LogInfo("::: Creating .new file :::");
-                    CreateNewFile(targetFile.FullName);
+                    //find a matching source file based on the relative path of the file
+                    FileInfo sourceFile = sourceFiles.Find(f =>
+                        f.FullName.Replace(sourceDir.FullName, "") ==
+                        targetFile.FullName.Replace(targetDir.FullName, ""));
 
-                    newCount++;
+                    //if the target file doesn't exist in the source files, the target file needs to be added.
+                    if (sourceFile == null)
+                    {
+                        PatchLogger.LogInfo("::: Creating .new file :::");
+                        CreateNewFile(targetFile.FullName);
+
+                        newCount++;
+                        filesProcessed++;
+
+                        RaiseProgressChanged(filesProcessed, fileCountTotal,
+                            $"{targetFile.FullName.Replace(TargetFolder, "...")}.new", AdditionalInfo.ToArray());
+
+                        return;
+                    }
+
+                    string extension = "";
+
+                    // if a matching source file was found, check the file hashes and get the delta.
+                    // add it to the bag for removal later
+                    if (!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
+                    {
+                        foundFilesQueue.Enqueue(sourceFile);
+                        PatchLogger.LogInfo("::: Creating .delta file :::");
+                        CreateDelta(sourceFile.FullName, targetFile.FullName);
+                        extension = ".delta";
+                        deltaCount++;
+                    }
+                    else
+                    {
+                        foundFilesQueue.Enqueue(sourceFile);
+                        PatchLogger.LogInfo("::: File Exists :::");
+                        existCount++;
+                    }
+
                     filesProcessed++;
 
-                    RaiseProgressChanged(filesProcessed, fileCountTotal, $"{targetFile.FullName.Replace(TargetFolder, "...")}.new", AdditionalInfo.ToArray());
+                    AdditionalInfo[0].ItemValue = deltaCount;
+                    AdditionalInfo[1].ItemValue = newCount;
+                    AdditionalInfo[3].ItemValue = existCount;
 
-                    continue;
-                }
+                    RaiseProgressChanged(filesProcessed, fileCountTotal,
+                        $"{targetFile.FullName.Replace(TargetFolder, "...")}{extension}", AdditionalInfo.ToArray()); 
+                });
 
-                string extension = "";
+            // remove all queued files that were found in the source files list
+            PatchLogger.LogInfo(":: Updating Source List ::");
+            try
+            {
+                int processedQueueCount = 0;
+                int queueTotal = foundFilesQueue.Count;
 
-                //if a matching source file was found, check the file hashes and get the delta.
-                if (!CompareFileHashes(sourceFile.FullName, targetFile.FullName))
+                foreach (var queuedFile in foundFilesQueue)
                 {
-                    PatchLogger.LogInfo("::: Creating .delta file :::");
-                    CreateDelta(sourceFile.FullName, targetFile.FullName);
-                    extension = ".delta";
-                    deltaCount++;
+                    RaiseProgressChanged(processedQueueCount, queueTotal, $"Queued file removed: {queuedFile.Name}",
+                        AdditionalInfo.ToArray());
+                    sourceFiles.Remove(queuedFile);
                 }
-                else
-                {
-                    PatchLogger.LogInfo("::: File Exists :::");
-                    existCount++;
-                }
-
-                try
-                {
-                    SourceFiles.Remove(sourceFile);
-                }
-                catch(Exception ex)
-                {
-                    PatchLogger.LogException(ex);
-                }
-
-                filesProcessed++;
-
-                AdditionalInfo[0].ItemValue = deltaCount;
-                AdditionalInfo[1].ItemValue = newCount;
-                AdditionalInfo[3].ItemValue = existCount;
-
-                RaiseProgressChanged(filesProcessed, fileCountTotal, $"{targetFile.FullName.Replace(TargetFolder, "...")}{extension}", AdditionalInfo.ToArray());
+            }
+            catch (Exception ex)
+            {
+                PatchLogger.LogException(ex);
             }
 
             //Any remaining source files do not exist in the target folder and can be removed.
             //reset progress info
 
-            if (SourceFiles.Count == 0)
+            if (sourceFiles.Count == 0)
             {
                 PatchLogger.LogInfo("::: Patch Generation Complete :::");
 
                 return new PatchMessage("Generation Done", PatcherExitCode.Success);
             }
 
-            RaiseProgressChanged(0, SourceFiles.Count, "Processing .del files...");
+            RaiseProgressChanged(0, sourceFiles.Count, "Processing .del files...");
             filesProcessed = 0;
-            fileCountTotal = SourceFiles.Count;
+            fileCountTotal = sourceFiles.Count;
 
-            foreach (FileInfo delFile in SourceFiles)
+            foreach (FileInfo delFile in sourceFiles)
             {
                 PatchLogger.LogInfo("::: Creating .del file :::");
                 CreateDelFile(delFile.FullName);
@@ -368,7 +393,8 @@ namespace PatcherUtils
                 AdditionalInfo[2].ItemValue = delCount;
 
                 filesProcessed++;
-                RaiseProgressChanged(filesProcessed, fileCountTotal, $"{delFile.FullName.Replace(SourceFolder, "...")}.del", AdditionalInfo.ToArray());
+                RaiseProgressChanged(filesProcessed, fileCountTotal,
+                    $"{delFile.FullName.Replace(SourceFolder, "...")}.del", AdditionalInfo.ToArray());
             }
 
             PatchLogger.LogInfo("::: Patch Generation Complete :::");
@@ -398,7 +424,7 @@ namespace PatcherUtils
                 return new PatchMessage(message, PatcherExitCode.MissingDir);
             }
 
-            if(!deltaDir.Exists)
+            if (!deltaDir.Exists)
             {
                 string message = $"Could not find delta directory: {deltaDir.FullName}";
                 PatchLogger.LogError(message);
@@ -424,81 +450,100 @@ namespace PatcherUtils
                 new LineItem("Files to Delete", delCount)
             };
 
+            ConcurrentQueue<PatchMessage> errorsQueue = new ConcurrentQueue<PatchMessage>();
             filesProcessed = 0;
 
             fileCountTotal = deltaFiles.Count;
+            var patchingTokenSource = new CancellationTokenSource();
 
-            foreach (FileInfo deltaFile in deltaDir.GetFiles("*", SearchOption.AllDirectories))
+            // foreach (FileInfo deltaFile in deltaDir.GetFiles("*", SearchOption.AllDirectories))
+            Parallel.ForEach(deltaDir.GetFiles("*", SearchOption.AllDirectories).ToList(), 
+                new ParallelOptions() { MaxDegreeOfParallelism = 5, CancellationToken = patchingTokenSource.Token},
+                deltaFile => 
             {
                 switch (deltaFile.Extension)
                 {
                     case ".delta":
+                    {
+                        //apply delta
+                        FileInfo sourceFile = SourceFiles.Find(f =>
+                            f.FullName.Replace(sourceDir.FullName, "") == deltaFile.FullName
+                                .Replace(deltaDir.FullName, "").Replace(".delta", ""));
+
+                        if (sourceFile == null)
                         {
-                            //apply delta
-                            FileInfo sourceFile = SourceFiles.Find(f => f.FullName.Replace(sourceDir.FullName, "") == deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".delta", ""));
-
-                            if (sourceFile == null)
-                            {
-                                return new PatchMessage($"Failed to find matching source file for '{deltaFile.FullName}'", PatcherExitCode.MissingFile);
-                            }
-
-                            PatchLogger.LogInfo("::: Applying Delta :::");
-                            var result = ApplyDelta(sourceFile.FullName, deltaFile.FullName);
-
-                            if(!result.Item1)
-                            {
-                                return new PatchMessage(result.Item2, PatcherExitCode.PatchFailed);
-                            }
-
-                            deltaCount--;
-
-                            break;
+                            patchingTokenSource.Cancel();
+                            errorsQueue.Enqueue(new PatchMessage(
+                                $"Failed to find matching source file for '{deltaFile.FullName}'",
+                                PatcherExitCode.MissingFile));
+                            return;
                         }
+
+                        PatchLogger.LogInfo("::: Applying Delta :::");
+                        var result = ApplyDelta(sourceFile.FullName, deltaFile.FullName);
+
+                        if (!result.Item1)
+                        {
+                            patchingTokenSource.Cancel();
+                            errorsQueue.Enqueue(new PatchMessage(result.Item2, PatcherExitCode.PatchFailed));
+                            return;
+                        }
+
+                        deltaCount--;
+
+                        break;
+                    }
                     case ".new":
+                    {
+                        //copy new file
+                        string destination = Path.Join(sourceDir.FullName,
+                            deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".new", ""));
+
+                        PatchLogger.LogInfo("::: Adding New File :::");
+
+                        try
                         {
-                            //copy new file
-                            string destination = Path.Join(sourceDir.FullName, deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".new", ""));
-
-                            PatchLogger.LogInfo("::: Adding New File :::");
-
-                            try
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                                File.Copy(deltaFile.FullName, destination, true);
-                                PatchLogger.LogInfo($"File added: {destination}");
-                            }
-                            catch(Exception ex)
-                            {
-                                PatchLogger.LogException(ex);
-                                return new PatchMessage(ex.Message, PatcherExitCode.PatchFailed);
-                            }
-
-                            newCount--;
-
-                            break;
+                            Directory.CreateDirectory(Path.GetDirectoryName(destination));
+                            File.Copy(deltaFile.FullName, destination, true);
+                            PatchLogger.LogInfo($"File added: {destination}");
                         }
+                        catch (Exception ex)
+                        {
+                            patchingTokenSource.Cancel();
+                            PatchLogger.LogException(ex);
+                            errorsQueue.Enqueue(new PatchMessage(ex.Message, PatcherExitCode.PatchFailed));
+                            return;
+                        }
+
+                        newCount--;
+
+                        break;
+                    }
                     case ".del":
+                    {
+                        //remove unneeded file
+                        string delFilePath = Path.Join(sourceDir.FullName,
+                            deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".del", ""));
+
+                        PatchLogger.LogInfo("::: Removing Uneeded File :::");
+
+                        try
                         {
-                            //remove unneeded file
-                            string delFilePath = Path.Join(sourceDir.FullName, deltaFile.FullName.Replace(deltaDir.FullName, "").Replace(".del", ""));
-
-                            PatchLogger.LogInfo("::: Removing Uneeded File :::");
-
-                            try
-                            {
-                                File.Delete(delFilePath);
-                                PatchLogger.LogInfo($"File removed: {delFilePath}");
-                            }
-                            catch(Exception ex)
-                            {
-                                PatchLogger.LogException(ex);
-                                return new PatchMessage(ex.Message, PatcherExitCode.PatchFailed);
-                            }
-
-                            delCount--;
-
-                            break;
+                            File.Delete(delFilePath);
+                            PatchLogger.LogInfo($"File removed: {delFilePath}");
                         }
+                        catch (Exception ex)
+                        {
+                            patchingTokenSource.Cancel();
+                            PatchLogger.LogException(ex);
+                            errorsQueue.Enqueue(new PatchMessage(ex.Message, PatcherExitCode.PatchFailed));
+                            return;
+                        }
+
+                        delCount--;
+
+                        break;
+                    }
                 }
 
                 AdditionalInfo[0].ItemValue = deltaCount;
@@ -507,10 +552,21 @@ namespace PatcherUtils
 
                 ++filesProcessed;
                 RaiseProgressChanged(filesProcessed, fileCountTotal, deltaFile.Name, AdditionalInfo.ToArray());
+            });
+
+            if (errorsQueue.Count > 0)
+            {
+                if (!errorsQueue.TryDequeue(out PatchMessage error))
+                {
+                    return new PatchMessage("Errors occurred during patching, but we couldn't dequeue them :(\n\nThere may be more information in the log", PatcherExitCode.PatchFailed);
+                }
+
+                return error;
             }
 
             PatchLogger.LogInfo("::: Patching Complete :::");
-            return new PatchMessage($"Patching Complete. You can delete the patcher.exe file.", PatcherExitCode.Success);
+            return new PatchMessage($"Patching Complete. You can delete the patcher.exe file.",
+                PatcherExitCode.Success);
         }
     }
 }

@@ -2,7 +2,6 @@
 using PatcherUtils.Model;
 using System.IO;
 using System.Reflection;
-using Aki.Common.Utils;
 using SevenZip;
 
 namespace PatcherUtils
@@ -102,31 +101,44 @@ namespace PatcherUtils
 
         public static void CompressDirectory(string SourceDirectoryPath, string DestinationFilePath, IProgress<int> progress)
         {
-            var outputFile = new FileInfo(DestinationFilePath);
-            
-            SevenZipBase.SetLibraryPath(SevenZDllPath);
-            var compressor = new SevenZipCompressor()
+            try
             {
-                ArchiveFormat = OutArchiveFormat.SevenZip,
-                CompressionMethod = CompressionMethod.Lzma2,
-                CompressionLevel = CompressionLevel.Normal
-            };
+                PatchLogger.LogInfo($"Compressing: {SourceDirectoryPath}");
+                PatchLogger.LogInfo($"Output file: {DestinationFilePath}");
+                var outputFile = new FileInfo(DestinationFilePath);
+                SevenZipBase.SetLibraryPath(SevenZDllPath);
+                
+                PatchLogger.LogInfo($"7z.dll set: {SevenZDllPath}");
+                
+                var compressor = new SevenZipCompressor()
+                {
+                    ArchiveFormat = OutArchiveFormat.SevenZip,
+                    CompressionMethod = CompressionMethod.Lzma2,
+                    CompressionLevel = CompressionLevel.Normal,
+                    PreserveDirectoryRoot = true
+                };
 
-            compressor.Compressing += (_, args) =>
+                compressor.Compressing += (_, args) => { progress.Report(args.PercentDone); };
+
+                using var outputStream = outputFile.OpenWrite();
+
+                PatchLogger.LogInfo("Starting compression");
+                
+                compressor.CompressDirectory(SourceDirectoryPath, outputStream);
+                
+                PatchLogger.LogInfo("Compression complete");
+
+                outputFile.Refresh();
+
+                // failed to compress data
+                if (!outputFile.Exists || outputFile.Length == 0)
+                {
+                    PatchLogger.LogError("Failed to compress patcher");
+                }
+            }
+            catch (Exception ex)
             {
-                progress.Report(args.PercentDone);
-            };
-
-            using var outputStream = outputFile.OpenWrite();
-            
-            compressor.CompressDirectory(SourceDirectoryPath, outputStream);
-            
-            outputFile.Refresh();
-
-            // failed to compress data
-            if (!outputFile.Exists || outputFile.Length == 0)
-            {
-                Logger.LogError("Failed to compress patcher");
+                PatchLogger.LogException(ex);
             }
         }
 
@@ -140,7 +152,7 @@ namespace PatcherUtils
             if (dir.Exists)
             {
                 dir.Delete(true);
-                PatchLogger.LogInfo("Temp directory delted");
+                PatchLogger.LogInfo("Temp directory deleted");
             }
         }
     }

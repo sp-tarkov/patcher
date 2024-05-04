@@ -14,9 +14,11 @@ using System.IO;
 using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using PatcherUtils.Model;
+using Timer = System.Timers.Timer;
 
 namespace PatchGenerator.ViewModels
 {
@@ -112,15 +114,17 @@ namespace PatchGenerator.ViewModels
                 patchGenStopwatch.Start();
 
                 var message = patcher.GeneratePatches();
-
-                if(message.ExitCode != PatcherExitCode.Success && generationInfo.AutoClose)
-                {
-                    Environment.Exit((int)message.ExitCode);
-                }
-
+                
                 patchGenStopwatch.Stop();
                 updateElapsedTimeTimer.Stop();
 
+                if(message.ExitCode != PatcherExitCode.Success && generationInfo.AutoClose)
+                {
+                    PatchLogger.LogInfo("Exiting: Auto close on failure");
+                    Environment.Exit((int)message.ExitCode);
+                }
+
+                PatchLogger.LogInfo("Printing summary info ...");
                 PrintSummary();
 
                 StringBuilder sb = new StringBuilder()
@@ -132,30 +136,33 @@ namespace PatchGenerator.ViewModels
                 ProgressMessage = sb.ToString();
 
                 File.Copy(LazyOperations.PatcherClientPath, $"{generationInfo.PatchName.FromCwd()}\\patcher.exe", true);
-
-                if (generationInfo.AutoZip)
-                {
-                    IndeterminateProgress = true;
-
-                    PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
-
-                    System.Threading.Thread.Sleep(2000);
-
-                    PatchItemCollection.Add(new PatchItem("Zipping patcher ..."));
-
-                    ProgressMessage = "Zipping patcher";
-                    
-                    IndeterminateProgress = false;
-
-                    var progress = new Progress<int>(p =>
-                    {
-                        PatchPercent = p;
-                    });
-
-                    LazyOperations.CompressDirectory(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.7z".FromCwd(), progress);
-
-                    PatchItemCollection.Add(new PatchItem("Done"));
-                }
+                
+                PatchLogger.LogInfo("Copied patcher.exe to output folder");
+                
+                // if (generationInfo.AutoZip)
+                // {
+                //     PatchLogger.LogInfo("AutoZipping");
+                //     IndeterminateProgress = true;
+                //
+                //     PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
+                //
+                //     Thread.Sleep(2000);
+                //
+                //     PatchItemCollection.Add(new PatchItem("Zipping patcher ..."));
+                //
+                //     ProgressMessage = "Zipping patcher";
+                //     
+                //     IndeterminateProgress = false;
+                //
+                //     var progress = new Progress<int>(p =>
+                //     {
+                //         PatchPercent = p;
+                //     });
+                //
+                //     LazyOperations.CompressDirectory(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.7z".FromCwd(), progress);
+                //
+                //     PatchItemCollection.Add(new PatchItem("Done"));
+                // }
 
                 if (generationInfo.AutoClose)
                 {

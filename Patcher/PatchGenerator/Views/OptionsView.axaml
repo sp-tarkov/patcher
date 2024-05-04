@@ -15,9 +15,10 @@
              Grid.Row="2" Grid.ColumnSpan="3"
              Watermark="Output Folder Name"
              />
-    
-    <CheckBox Content="Zip Generated Files" Grid.Row="4"
-              IsChecked="{Binding GenerationInfo.AutoZip}"/>
+      
+    <!-- UNRESOLVED ISSUES: disabling for now -->  
+    <!-- <CheckBox Content="Zip Generated Files" Grid.Row="4" -->
+    <!--           IsChecked="{Binding GenerationInfo.AutoZip}"/> -->
     
     <Button Content="Generate Patches" Grid.ColumnSpan="3" Grid.Row="4"
             HorizontalAlignment="Right"

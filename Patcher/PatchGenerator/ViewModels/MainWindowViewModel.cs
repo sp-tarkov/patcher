@@ -23,7 +23,6 @@ namespace PatchGenerator.ViewModels
         {
             this.WhenActivated((CompositeDisposable disposables) =>
             {
-
                 if (genArgs != null && genArgs.ReadyToRun)
                 {
                     PatchGenInfo genInfo = new PatchGenInfo();
@@ -31,7 +30,8 @@ namespace PatchGenerator.ViewModels
                     genInfo.TargetFolderPath = genArgs.TargetFolderPath;
                     genInfo.SourceFolderPath = genArgs.SourceFolderPath;
                     genInfo.PatchName = genArgs.OutputFolderName;
-                    genInfo.AutoZip = genArgs.AutoZip;
+                    // issues with auto zip, but it's not really used anymore so just disabling for now
+                    genInfo.AutoZip = false;
                     genInfo.AutoClose = genArgs.AutoClose;
 
                     Router.Navigate.Execute(new PatchGenerationViewModel(this, genInfo));

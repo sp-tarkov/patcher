@@ -280,10 +280,11 @@ namespace PatcherUtils
 
             LazyOperations.ExtractResourcesToTempDir();
 
-            List<FileInfo> SourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
+            List<FileInfo> sourceFiles = sourceDir.GetFiles("*", SearchOption.AllDirectories).ToList();
+            var targetFiles = targetDir.GetFiles("*", SearchOption.AllDirectories).ToList();
             ConcurrentQueue<FileInfo> foundFilesQueue = new ConcurrentQueue<FileInfo>();
 
-            fileCountTotal = SourceFiles.Count;
+            fileCountTotal = targetFiles.Count;
 
             PatchLogger.LogInfo($"Total source files: {fileCountTotal}");
 
@@ -296,15 +297,12 @@ namespace PatcherUtils
             filesProcessed = 0;
 
             RaiseProgressChanged(0, fileCountTotal, "Generating deltas...");
-            
-            // use 5 threads to process source files / create deltas
-            Parallel.ForEach(targetDir.GetFiles("*", SearchOption.AllDirectories),
-                new ParallelOptions() { MaxDegreeOfParallelism = 5 },
-                targetFile =>
+
+            Parallel.ForEach(targetFiles,
+                new ParallelOptions() { MaxDegreeOfParallelism = 5 }, targetFile =>
                 {
                     //find a matching source file based on the relative path of the file
-
-                    FileInfo sourceFile = SourceFiles.Find(f =>
+                    FileInfo sourceFile = sourceFiles.Find(f =>
                         f.FullName.Replace(sourceDir.FullName, "") ==
                         targetFile.FullName.Replace(targetDir.FullName, ""));
 
@@ -349,7 +347,7 @@ namespace PatcherUtils
                     AdditionalInfo[3].ItemValue = existCount;
 
                     RaiseProgressChanged(filesProcessed, fileCountTotal,
-                        $"{targetFile.FullName.Replace(TargetFolder, "...")}{extension}", AdditionalInfo.ToArray());
+                        $"{targetFile.FullName.Replace(TargetFolder, "...")}{extension}", AdditionalInfo.ToArray()); 
                 });
 
             // remove all queued files that were found in the source files list
@@ -363,7 +361,7 @@ namespace PatcherUtils
                 {
                     RaiseProgressChanged(processedQueueCount, queueTotal, $"Queued file removed: {queuedFile.Name}",
                         AdditionalInfo.ToArray());
-                    SourceFiles.Remove(queuedFile);
+                    sourceFiles.Remove(queuedFile);
                 }
             }
             catch (Exception ex)
@@ -374,18 +372,18 @@ namespace PatcherUtils
             //Any remaining source files do not exist in the target folder and can be removed.
             //reset progress info
 
-            if (SourceFiles.Count == 0)
+            if (sourceFiles.Count == 0)
             {
                 PatchLogger.LogInfo("::: Patch Generation Complete :::");
 
                 return new PatchMessage("Generation Done", PatcherExitCode.Success);
             }
 
-            RaiseProgressChanged(0, SourceFiles.Count, "Processing .del files...");
+            RaiseProgressChanged(0, sourceFiles.Count, "Processing .del files...");
             filesProcessed = 0;
-            fileCountTotal = SourceFiles.Count;
+            fileCountTotal = sourceFiles.Count;
 
-            foreach (FileInfo delFile in SourceFiles)
+            foreach (FileInfo delFile in sourceFiles)
             {
                 PatchLogger.LogInfo("::: Creating .del file :::");
                 CreateDelFile(delFile.FullName);

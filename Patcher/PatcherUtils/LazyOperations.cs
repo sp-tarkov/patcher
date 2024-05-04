@@ -2,7 +2,6 @@
 using PatcherUtils.Model;
 using System.IO;
 using System.Reflection;
-using Aki.Common.Utils;
 using SevenZip;
 
 namespace PatcherUtils
@@ -115,7 +114,8 @@ namespace PatcherUtils
                 {
                     ArchiveFormat = OutArchiveFormat.SevenZip,
                     CompressionMethod = CompressionMethod.Lzma2,
-                    CompressionLevel = CompressionLevel.Normal
+                    CompressionLevel = CompressionLevel.Normal,
+                    PreserveDirectoryRoot = true
                 };
 
                 compressor.Compressing += (_, args) => { progress.Report(args.PercentDone); };

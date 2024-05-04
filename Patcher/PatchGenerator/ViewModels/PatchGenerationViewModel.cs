@@ -14,9 +14,11 @@ using System.IO;
 using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using PatcherUtils.Model;
+using Timer = System.Timers.Timer;
 
 namespace PatchGenerator.ViewModels
 {
@@ -137,31 +139,30 @@ namespace PatchGenerator.ViewModels
                 
                 PatchLogger.LogInfo("Copied patcher.exe to output folder");
                 
-                if (generationInfo.AutoZip)
-                {
-                    PatchLogger.LogInfo("AutoZipping");
-                    IndeterminateProgress = true;
-
-                    PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
-
-                    System.Threading.Thread.Sleep(2000);
-
-                    PatchItemCollection.Add(new PatchItem("Zipping patcher ..."));
-
-                    ProgressMessage = "Zipping patcher";
-                    
-                    IndeterminateProgress = false;
-
-                    var progress = new Progress<int>(p =>
-                    {
-                        PatchLogger.LogInfo($"compressing directory @ {p}%");
-                        PatchPercent = p;
-                    });
-
-                    LazyOperations.CompressDirectory(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.7z".FromCwd(), progress);
-
-                    PatchItemCollection.Add(new PatchItem("Done"));
-                }
+                // if (generationInfo.AutoZip)
+                // {
+                //     PatchLogger.LogInfo("AutoZipping");
+                //     IndeterminateProgress = true;
+                //
+                //     PatchItemCollection.Add(new PatchItem("Allowing Time for files to unlock ..."));
+                //
+                //     Thread.Sleep(2000);
+                //
+                //     PatchItemCollection.Add(new PatchItem("Zipping patcher ..."));
+                //
+                //     ProgressMessage = "Zipping patcher";
+                //     
+                //     IndeterminateProgress = false;
+                //
+                //     var progress = new Progress<int>(p =>
+                //     {
+                //         PatchPercent = p;
+                //     });
+                //
+                //     LazyOperations.CompressDirectory(generationInfo.PatchName.FromCwd(), $"{generationInfo.PatchName}.7z".FromCwd(), progress);
+                //
+                //     PatchItemCollection.Add(new PatchItem("Done"));
+                // }
 
                 if (generationInfo.AutoClose)
                 {

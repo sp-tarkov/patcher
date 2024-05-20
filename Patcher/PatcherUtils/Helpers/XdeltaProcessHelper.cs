@@ -9,7 +9,7 @@ namespace PatcherUtils.Helpers;
 
 public class XdeltaProcessHelper
 {
-    private readonly int _timeout = (int)TimeSpan.FromMinutes(5).TotalMilliseconds;
+    private readonly int _timeout = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
     private string _args;
     private string _sourcePath;
     private string _deltaPath;

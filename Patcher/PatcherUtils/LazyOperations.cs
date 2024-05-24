@@ -17,7 +17,7 @@ namespace PatcherUtils
         /// <summary>
         /// The folder that the patches will be stored in
         /// </summary>
-        public static string PatchFolder = "Aki_Patches";
+        public static string PatchFolder = "SPT_Patches";
 
         private static string SevenZDll = "7z.dll";
 

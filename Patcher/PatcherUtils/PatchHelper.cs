@@ -9,7 +9,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using PatcherUtils.Helpers;
+using PleOps.XdeltaSharp.Decoder;
 
 namespace PatcherUtils
 {
@@ -114,37 +114,30 @@ namespace PatcherUtils
         {
             string decodedPath = SourceFilePath + ".decoded";
 
-            var xdeltaArgs = $"-d {(debugOutput ? "-v -v" : "")} -f -s";
-
-            var xdeltaHelper =
-                new XdeltaProcessHelper(xdeltaArgs, SourceFilePath, DeltaFilePath, decodedPath, debugOutput);
-
-            if (!xdeltaHelper.Run())
+            try
             {
-                return (false, "something went wrong during the xdelta3 process");
+                using var inputFile = new FileStream(SourceFilePath, FileMode.Open);
+                using var patchFile = new FileStream(DeltaFilePath, FileMode.Open);
+                using var decodedFile = new FileStream(decodedPath, FileMode.Create);
+                using var decoder = new Decoder(inputFile, patchFile, decodedFile);
+                decoder.Run();
+            }
+            catch (Exception ex)
+            {
+                PatchLogger.LogException(ex);
+                return (false, ex.Message);
             }
 
-            if (File.Exists(decodedPath))
+            try
             {
-                PatchLogger.LogInfo($"File delta decoded: {SourceFilePath}");
-
-                try
-                {
-                    File.Move(decodedPath, SourceFilePath, true);
-                    PatchLogger.LogInfo($"Delta applied: {DeltaFilePath}");
-                    return (true, "");
-                }
-                catch (Exception ex)
-                {
-                    PatchLogger.LogException(ex);
-                    return (false, ex.Message);
-                }
+                File.Move(decodedPath, SourceFilePath, true);
+                PatchLogger.LogInfo($"Delta applied: {DeltaFilePath}");
+                return (true, "");
             }
-            else
+            catch (Exception ex)
             {
-                string error = $"Failed to decode file delta: {SourceFilePath}";
-                PatchLogger.LogError(error);
-                return (false, error);
+                PatchLogger.LogException(ex);
+                return (false, ex.Message);
             }
         }
 

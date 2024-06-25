@@ -83,6 +83,12 @@ namespace PatcherUtils
             var sourceInfo = new FileInfo(SourceFilePath);
             var targetInfo = new FileInfo(TargetFilePath);
 
+            // Return false if file size differs
+            if (sourceInfo.Length != targetInfo.Length)
+            {
+                return false;
+            }
+
             using (MD5 md5Service = MD5.Create())
             using (var sourceStream = File.OpenRead(SourceFilePath))
             using (var targetStream = File.OpenRead(TargetFilePath))
@@ -166,7 +172,7 @@ namespace PatcherUtils
             Process.Start(new ProcessStartInfo
                 {
                     FileName = LazyOperations.XDelta3Path,
-                    Arguments = $"-0 -e -f -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
+                    Arguments = $"-0 -e -f -S none -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
                     CreateNoWindow = true
                 })
                 .WaitForExit();

@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>2.15.2</AssemblyVersion>
-    <FileVersion>2.15.2</FileVersion>
+    <AssemblyVersion>2.15.3</AssemblyVersion>
+    <FileVersion>2.15.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +42,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\PatchClient.exe" />
+    <EmbeddedResource Include="..\..\..\..\..\Downloads\PatchClient.exe">
+      <Link>Resources\PatchClient.exe</Link>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

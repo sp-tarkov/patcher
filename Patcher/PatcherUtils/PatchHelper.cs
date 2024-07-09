@@ -483,10 +483,10 @@ namespace PatcherUtils
 
                                 if (sourceFile == null)
                                 {
-                                    patchingTokenSource.Cancel();
                                     errorsQueue.Enqueue(new PatchMessage(
                                         $"Failed to find matching source file for '{deltaFile.FullName}'",
                                         PatcherExitCode.MissingFile));
+                                    patchingTokenSource.Cancel();
                                     return;
                                 }
 
@@ -495,8 +495,8 @@ namespace PatcherUtils
 
                                 if (!result.Item1)
                                 {
-                                    patchingTokenSource.Cancel();
                                     errorsQueue.Enqueue(new PatchMessage(result.Item2, PatcherExitCode.PatchFailed));
+                                    patchingTokenSource.Cancel();
                                     return;
                                 }
 
@@ -520,9 +520,9 @@ namespace PatcherUtils
                                 }
                                 catch (Exception ex)
                                 {
-                                    patchingTokenSource.Cancel();
                                     PatchLogger.LogException(ex);
                                     errorsQueue.Enqueue(new PatchMessage(ex.Message, PatcherExitCode.PatchFailed));
+                                    patchingTokenSource.Cancel();
                                     return;
                                 }
 
@@ -545,9 +545,9 @@ namespace PatcherUtils
                                 }
                                 catch (Exception ex)
                                 {
-                                    patchingTokenSource.Cancel();
                                     PatchLogger.LogException(ex);
                                     errorsQueue.Enqueue(new PatchMessage(ex.Message, PatcherExitCode.PatchFailed));
+                                    patchingTokenSource.Cancel();
                                     return;
                                 }
 
@@ -573,12 +573,23 @@ namespace PatcherUtils
             if (errorsQueue.Count > 0)
             {
                 PatchLogger.LogError($"Error queue entry count: {errorsQueue.Count}");
-                if (!errorsQueue.TryDequeue(out PatchMessage error))
+                PatchLogger.LogError("Dequeuing errors");
+                
+                PatchMessage error = null;
+                
+                for (int i = 0; i < errorsQueue.Count; i++)
                 {
-                    return new PatchMessage("Errors occurred during patching, but we couldn't dequeue them :(\n\nThere may be more information in the log", PatcherExitCode.PatchFailed);
+                    if (!errorsQueue.TryDequeue(out error))
+                    {
+                        return new PatchMessage(
+                            "Errors occurred during patching, but we couldn't dequeue them :(\n\nThere may be more information in the log",
+                            PatcherExitCode.PatchFailed);
+                    }
+                    
+                    PatchLogger.LogError(error.Message);
                 }
 
-                return error;
+                return error ?? new PatchMessage("Something went wrong :(", PatcherExitCode.PatchFailed);
             }
 
             PatchLogger.LogInfo("::: Patching Complete :::");

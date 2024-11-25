@@ -4,10 +4,11 @@ Allows for generating and applying patches to software.
 Currently used for downgrading EFT.
 
 ## Requirements
-- .net 6
+- .net 8
 
 ## Development Stuff
 - VS 2022 w/ Avalonia Extension
+- git-lfs
 
 ## PatchClient Parameters
 The patch client only has one parameter at this time (`autoclose`) which can be passed to the patch client like this:

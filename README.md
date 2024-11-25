@@ -40,7 +40,7 @@ public enum PatcherExitCode
     EftExeNotFound = 11, // EFT exe was not found during patching (patch client only)
     NoPatchFolder  = 12, // no patch folder was found during patching (patch client only)
     MissingFile    = 13, // a matching file could not be found during patching (patch client only) 
-    MissingDir     = 14  // a directory could not be found during patch generation (source/target/output) (patch generator only)
+    MissingDir     = 14, // a directory could not be found during patch generation (source/target/output) (patch generator only)
     PatchFailed    = 15  // a patch file failed (patch client only)
 }
 ```

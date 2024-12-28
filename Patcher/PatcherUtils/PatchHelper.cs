@@ -120,7 +120,7 @@ namespace PatcherUtils
                 HDiffPatch.LogVerbosity = Verbosity.Quiet;
 
                 patcher.Initialize(DeltaFilePath);
-                patcher.Patch(SourceFilePath, decodedPath, true, default, false, true);
+                patcher.Patch(SourceFilePath, decodedPath, false, default, false, false);
             }
             catch (Exception ex)
             {

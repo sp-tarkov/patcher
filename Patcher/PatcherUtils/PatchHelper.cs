@@ -1,5 +1,6 @@
 ﻿using PatchClient.Models;
 using PatcherUtils.Model;
+using SharpHDiffPatch.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,7 +10,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using PleOps.XdeltaSharp.Decoder;
 
 namespace PatcherUtils
 {
@@ -116,11 +116,11 @@ namespace PatcherUtils
 
             try
             {
-                using var inputFile = new FileStream(SourceFilePath, FileMode.Open);
-                using var patchFile = new FileStream(DeltaFilePath, FileMode.Open);
-                using var decodedFile = new FileStream(decodedPath, FileMode.Create);
-                using var decoder = new Decoder(inputFile, patchFile, decodedFile);
-                decoder.Run();
+                HDiffPatch patcher = new HDiffPatch();
+                HDiffPatch.LogVerbosity = Verbosity.Quiet;
+
+                patcher.Initialize(DeltaFilePath);
+                patcher.Patch(SourceFilePath, decodedPath, true, default, false, true);
             }
             catch (Exception ex)
             {
@@ -162,10 +162,11 @@ namespace PatcherUtils
                 PatchLogger.LogException(ex);
             }
 
+            // The parameters we use here are important to allow patch application using the SharpHDiffPatch.Core library, please don't change them
             Process.Start(new ProcessStartInfo
                 {
-                    FileName = LazyOperations.XDelta3Path,
-                    Arguments = $"-0 -e -f -S none -s \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
+                    FileName = LazyOperations.HDiffPath,
+                    Arguments = $"-s-64 -c-zstd-21-24 -d \"{SourceFilePath}\" \"{TargetFilePath}\" \"{deltaPath}\"",
                     CreateNoWindow = true
                 })
                 .WaitForExit();
@@ -302,7 +303,7 @@ namespace PatcherUtils
 
 
                 Parallel.ForEach(targetFiles,
-                    new ParallelOptions() { MaxDegreeOfParallelism = 5 }, targetFile =>
+                    new ParallelOptions() { MaxDegreeOfParallelism = 10 }, targetFile =>
                     {
                         //find a matching source file based on the relative path of the file
                         FileInfo sourceFile = sourceFiles.Find(f =>

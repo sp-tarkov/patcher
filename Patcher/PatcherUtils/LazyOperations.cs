@@ -32,12 +32,12 @@ namespace PatcherUtils
         /// </summary>
         public static string PatcherClientPath = $"{TempDir}\\{PatcherClient}";
 
-        private static string XDelta3EXE = "xdelta3.exe";
+        private static string HDiffEXE = "hdiffz.exe";
 
         /// <summary>
-        /// The path to the xdelta3.exe flie in the <see cref="TempDir"/>
+        /// The path to the hdiffz.exe file in the <see cref="TempDir"/>
         /// </summary>
-        public static string XDelta3Path = $"{TempDir}\\{XDelta3EXE}";
+        public static string HDiffPath = $"{TempDir}\\{HDiffEXE}";
 
         /// <summary>
         /// Streams embedded resources out of the assembly
@@ -90,9 +90,9 @@ namespace PatcherUtils
                             StreamResourceOut(assembly, resource, PatcherClientPath);
                             break;
                         }
-                    case string a when a.EndsWith(XDelta3EXE):
+                    case string a when a.EndsWith(HDiffEXE):
                         {
-                            StreamResourceOut(assembly, resource, XDelta3Path);
+                            StreamResourceOut(assembly, resource, HDiffPath);
                             break;
                         }
                 }
